@@ -1,0 +1,42 @@
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Java / Spring Boot
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/
+!mvnw
+!mvnw.cmd
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+.project
+.classpath
+.settings/
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Data & Uploads
+uploads/
+mysql_data/
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

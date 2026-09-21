@@ -1,0 +1,2 @@
+-- Baseline migration
+-- Ensure flyway tables are initialized, no actual schema here.
