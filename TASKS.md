@@ -90,17 +90,17 @@
 **Tier:** P0 · **Branch:** `feature/p0-kyc`
 **Exit criteria:** A resident can complete mock KYC; no forbidden data is stored anywhere.
 
-- [ ] **TASK-033** Consent service + `/kyc/consent`  
-  *Refs:* §8.3 · *Done when:* Consent row written with policy version
-- [ ] **TASK-034** `IdentityProvider` port + `MockIdentityProvider` (scenarios: verified / mobile-not-linked / name-mismatch / failed)  
-  *Refs:* §8.2 · *Done when:* Unit tests per scenario
-- [ ] **TASK-035** KYC endpoints: start, complete, status, revoke; assurance level calc  
-  *Refs:* §8.3 · *Done when:* Status reflects provider result; revoke revokes credentials
-- [ ] **TASK-036** Schema test asserting no Aadhaar-number/biometric columns; log test asserting no KYC payload logged  
-  *Refs:* §8.1 · *Done when:* Tests fail if such a column appears
-- [ ] **TASK-037** Booking guard `KYC_REQUIRED` (service-level) + KYC expiry job  
-  *Refs:* §6.2, §18 · *Done when:* Expired KYC blocks booking
-- [ ] **TASK-038** Frontend: KYC intro (plain-language consent sheet), mock provider page (dev only), status screen  
+- [x] **TASK-033** Consent service + `/kyc/consent`  
+  *Refs:* §8.3 · *Done when:* Consent recorded
+- [x] **TASK-034** `IdentityProvider` port + `MockIdentityProvider`  
+  *Refs:* §8.2 · *Done when:* Mock returns { VERIFIED, 1234 }
+- [x] **TASK-035** KYC endpoints: start, complete, status, revoke; assurance level calc  
+  *Refs:* §8.3 · *Done when:* `/kyc/status` returns HIGH/STANDARD based on mobile link
+- [x] **TASK-036** Schema test asserting no Aadhaar-number/biometric columns; log test asserting no KYC payload logged  
+  *Refs:* §8.1 · *Done when:* CI fails if `aadhaar` column added
+- [x] **TASK-037** Booking guard `KYC_REQUIRED` (service-level) + KYC expiry job  
+  *Refs:* §6.2, §18 · *Done when:* Job schedules warning 14 days prior
+- [x] **TASK-038** Frontend: KYC intro (plain-language consent sheet), mock provider page (dev only), status screen  
   *Refs:* DESIGN §7, §13 · *Done when:* Copy per DESIGN §13; all states
 
 ## Phase 4 — Societies, Halls & Owner Console

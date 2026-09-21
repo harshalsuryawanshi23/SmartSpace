@@ -10,6 +10,11 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { ForceChangePassword } from './pages/ForceChangePassword';
 
+// KYC
+import { KycIntro } from './pages/kyc/KycIntro';
+import { KycMockProvider } from './pages/kyc/KycMockProvider';
+import { KycStatus } from './pages/kyc/KycStatus';
+
 function App() {
   return (
     <AuthProvider>
@@ -25,6 +30,12 @@ function App() {
           <Route element={<AuthGuard />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/force-change-password" element={<ForceChangePassword />} />
+            
+            {/* KYC routes */}
+            <Route path="/kyc" element={<KycIntro />} />
+            <Route path="/kyc/mock" element={<KycMockProvider />} />
+            <Route path="/kyc/status" element={<KycStatus />} />
+
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
 
