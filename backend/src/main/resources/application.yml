@@ -30,6 +30,8 @@ app:
     secret: ${JWT_SECRET}
     access-ttl-minutes: ${JWT_ACCESS_TTL_MIN:15}
     refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
+  security:
+    otp-pepper: ${OTP_PEPPER:default-otp-pepper-change-me-in-prod}
 
 springdoc:
   api-docs:
