@@ -26,6 +26,7 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final PaymentGateway paymentGateway;
     private final BookingStateMachine bookingStateMachine;
+    private final com.smartspace.entry.service.QrTokenService qrTokenService;
 
     @Transactional
     public Payment createOrder(String bookingRef, BigDecimal amount) {
@@ -91,6 +92,10 @@ public class PaymentService {
             // Transition booking to CONFIRMED
             bookingStateMachine.transition(booking, BookingStatus.CONFIRMED, "system", "Payment captured");
             bookingRepository.save(booking);
+            
+            // Issue QR Credential
+            String qrToken = qrTokenService.issueHolderCredential(booking);
+            log.info("Issued QR token for booking {}: {}", booking.getBookingRef(), qrToken);
         } else if (booking.getStatus() == BookingStatus.CANCELLED_AUTO) {
             // Late payment race condition! 
             // The booking lock expired and it auto-cancelled, but the payment succeeded just now.
