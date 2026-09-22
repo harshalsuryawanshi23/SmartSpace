@@ -18,6 +18,18 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final Clock clock;
+    private final com.smartspace.auth.repository.UserRepository userRepository;
+
+    @Transactional
+    public void notifyUser(Long userId, String type, String content, String priority) {
+        com.smartspace.auth.entity.User user = userRepository.findById(userId).orElseThrow();
+        Notification n = new Notification();
+        n.setUser(user);
+        n.setType(type);
+        n.setContent(content);
+        n.setPriority(priority);
+        notificationRepository.save(n);
+    }
 
     @Transactional(readOnly = true)
     public Page<Notification> getUserNotifications(Long userId, Pageable pageable) {

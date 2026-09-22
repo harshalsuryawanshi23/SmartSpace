@@ -8,6 +8,10 @@ interface Booking {
   startAt: string;
   endAt: string;
   displayName: string;
+  guestCount?: number;
+  currentHeadcount?: number;
+  capacity?: number;
+  alertLevel?: string;
 }
 
 export default function WatchHome() {
@@ -31,6 +35,27 @@ export default function WatchHome() {
     };
     fetchToday();
   }, []);
+
+  const updateHeadcount = async (bookingId: number, newCount: number) => {
+    try {
+      const res = await fetch('/api/v1/entry/headcount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, count: newCount, deviceId: 'browser-test' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update local state
+        setBookings(prev => prev.map(b => b.id === bookingId ? {
+          ...b, 
+          currentHeadcount: data.count,
+          alertLevel: data.level
+        } : b));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -66,13 +91,51 @@ export default function WatchHome() {
                   {new Date(b.endAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </div>
                 {b.status === 'CHECKED_IN' && (
-                  <div className="mt-3 flex justify-end">
-                    <button 
-                      onClick={() => navigate(`/watchman/checkout/${b.id}`)}
-                      className="px-4 py-2 bg-red-100 text-red-700 font-medium rounded-lg text-sm hover:bg-red-200"
-                    >
-                      Checkout & Handover
-                    </button>
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Live Headcount</p>
+                        <p className="text-sm text-gray-700">{b.currentHeadcount} / {b.capacity} (Declared: {b.guestCount})</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => {
+                             const newCount = Math.max(0, (b.currentHeadcount || 0) - 1);
+                             updateHeadcount(b.id, newCount);
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-300"
+                        >-</button>
+                        <span className={`px-3 py-1 font-mono font-bold rounded ${
+                            b.alertLevel === 'CRITICAL' ? 'bg-red-200 text-red-900' : 
+                            b.alertLevel === 'WARN' || b.alertLevel === 'NOTICE' ? 'bg-amber-200 text-amber-900' : 
+                            'bg-green-100 text-green-800'
+                        }`}>
+                          {b.currentHeadcount}
+                        </span>
+                        <button 
+                          onClick={() => {
+                             const newCount = (b.currentHeadcount || 0) + 1;
+                             updateHeadcount(b.id, newCount);
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-300"
+                        >+</button>
+                      </div>
+                    </div>
+                    
+                    {b.alertLevel === 'CRITICAL' && (
+                        <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-800 text-sm font-bold animate-pulse text-center">
+                            HOLD ENTRY! CALL OWNER!
+                        </div>
+                    )}
+
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={() => navigate(`/watchman/checkout/${b.id}`)}
+                        className="px-4 py-2 bg-red-100 text-red-700 font-medium rounded-lg text-sm hover:bg-red-200 w-full text-center"
+                      >
+                        Checkout & Handover
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

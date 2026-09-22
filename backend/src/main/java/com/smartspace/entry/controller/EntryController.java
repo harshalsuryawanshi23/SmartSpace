@@ -115,14 +115,30 @@ public class EntryController {
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.CHECKED_IN)
                 .collect(Collectors.toList());
                 
-        List<Map<String, Object>> response = bookings.stream().map(b -> Map.of(
+        List<Map<String, Object>> response = bookings.stream().map(b -> {
+            Integer currentHeadcount = 0;
+            String alertLevel = "OK";
+            if (b.getStatus() == BookingStatus.CHECKED_IN) {
+                // To avoid N+1 optimally we'd fetch this differently, but for MVP:
+                com.smartspace.entry.entity.HallLiveStatus hls = entryService.getHallLiveStatus(b.getHall().getId());
+                if (hls != null && hls.getCurrentBooking() != null && hls.getCurrentBooking().getId().equals(b.getId())) {
+                    currentHeadcount = hls.getCurrentHeadcount();
+                    alertLevel = hls.getCapacityAlertLevel();
+                }
+            }
+            return Map.of(
                 "id", b.getId(),
                 "bookingRef", b.getBookingRef(),
                 "status", b.getStatus().name(),
                 "startAt", b.getStartAt(),
                 "endAt", b.getEndAt(),
-                "displayName", b.getRenter().getName()
-        )).collect(Collectors.toList());
+                "displayName", b.getRenter().getName(),
+                "guestCount", b.getGuestCount(),
+                "currentHeadcount", currentHeadcount,
+                "capacity", b.getHall().getCapacityStanding(),
+                "alertLevel", alertLevel != null ? alertLevel : "OK"
+            );
+        }).collect(Collectors.toList());
         
         return ResponseEntity.ok(response);
     }
@@ -139,5 +155,13 @@ public class EntryController {
         Long watchmanUserId = 2L; // TODO: SecurityContext
         entryService.checkoutBooking(request, watchmanUserId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/headcount")
+    public ResponseEntity<Map<String, Object>> updateHeadcount(@RequestBody com.smartspace.entry.dto.HeadcountRequest request) {
+        Long watchmanUserId = 2L; // TODO: SecurityContext
+        Long watchmanHallId = 1L; // TODO: SecurityContext
+        Map<String, Object> result = entryService.updateHeadcount(request.getBookingId(), request.getCount(), watchmanHallId, watchmanUserId, request.getDeviceId());
+        return ResponseEntity.ok(result);
     }
 }

@@ -32,6 +32,8 @@ public class OwnerAnalyticsService {
         BigDecimal ownerEarnings = BigDecimal.ZERO;
         long cancellations = 0;
         long noShows = 0;
+        long totalPeakHeadcount = 0;
+        long totalDeclaredHeadcountForPeak = 0;
 
         for (Booking b : bookings) {
             // Filter logic if needed
@@ -50,6 +52,11 @@ public class OwnerAnalyticsService {
                 }
                 if (b.getPriceBase() != null) {
                     ownerEarnings = ownerEarnings.add(b.getPriceBase()); // Simplification
+                }
+                
+                if (b.getPeakHeadcount() != null && b.getPeakHeadcount() > 0) {
+                    totalPeakHeadcount += b.getPeakHeadcount();
+                    totalDeclaredHeadcountForPeak += b.getGuestCount();
                 }
             } else if (b.getStatus() == BookingStatus.CANCELLED) {
                 cancellations++;
@@ -73,6 +80,10 @@ public class OwnerAnalyticsService {
                 ? BigDecimal.valueOf(noShows).divide(BigDecimal.valueOf(totalBookings), 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
                 : BigDecimal.ZERO;
 
+        BigDecimal headcountRatio = totalDeclaredHeadcountForPeak > 0
+                ? BigDecimal.valueOf(totalPeakHeadcount).divide(BigDecimal.valueOf(totalDeclaredHeadcountForPeak), 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
+                : BigDecimal.ZERO;
+
         return OwnerAnalyticsSummary.builder()
                 .totalBookings(totalBookings)
                 .occupiedHours(occupiedMinutes / 60)
@@ -82,6 +93,7 @@ public class OwnerAnalyticsService {
                 .ownerEarnings(ownerEarnings)
                 .cancellationRate(cancelRate)
                 .noShowRate(noShowRate)
+                .avgHeadcountDeclaredRatio(headcountRatio)
                 .build();
     }
 
@@ -98,6 +110,7 @@ public class OwnerAnalyticsService {
         sb.append("Owner Earnings,").append(summary.getOwnerEarnings()).append("\n");
         sb.append("Cancellation Rate %,").append(summary.getCancellationRate()).append("\n");
         sb.append("No-Show Rate %,").append(summary.getNoShowRate()).append("\n");
+        sb.append("Peak Headcount vs Declared %,").append(summary.getAvgHeadcountDeclaredRatio()).append("\n");
         return sb.toString();
     }
 }

@@ -16,4 +16,5 @@ public class OwnerAnalyticsSummary {
     private BigDecimal ownerEarnings;
     private BigDecimal cancellationRate;
     private BigDecimal noShowRate;
+    private BigDecimal avgHeadcountDeclaredRatio;
 }

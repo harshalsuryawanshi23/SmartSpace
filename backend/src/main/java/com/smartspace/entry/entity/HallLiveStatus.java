@@ -35,6 +35,9 @@ public class HallLiveStatus {
     @Column(name = "current_headcount", nullable = false)
     private Integer currentHeadcount;
 
+    @Column(name = "capacity_alert_level", length = 20)
+    private String capacityAlertLevel;
+
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;

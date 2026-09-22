@@ -117,6 +117,9 @@ public class Booking {
     @Column(name = "overstay_minutes", nullable = false)
     private Integer overstayMinutes = 0;
 
+    @Column(name = "last_overstay_alert_at")
+    private Instant lastOverstayAlertAt;
+
     @Column(name = "dispute_open", nullable = false)
     private boolean disputeOpen = false;
 

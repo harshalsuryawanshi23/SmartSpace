@@ -10,6 +10,7 @@ import com.smartspace.entry.entity.HallLiveStatus;
 import com.smartspace.entry.repository.EntryCredentialRepository;
 import com.smartspace.entry.repository.EntryLogRepository;
 import com.smartspace.entry.repository.HallLiveStatusRepository;
+import com.smartspace.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class EntryService {
     private final HallLiveStatusRepository hallLiveStatusRepository;
     private final BookingStateMachine bookingStateMachine;
     private final com.smartspace.entry.repository.HandoverReportRepository handoverReportRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Map<String, Object> scan(String token, Long watchmanHallId, Long watchmanUserId, String deviceId) {
@@ -124,7 +126,12 @@ public class EntryService {
         }
 
         // Capacity Guard
-        if (arrivedCount != null && arrivedCount > booking.getHall().getCapacityStanding()) {
+        HallLiveStatus hallStatus = hallLiveStatusRepository.findById(booking.getHall().getId())
+                .orElse(HallLiveStatus.builder().hall(booking.getHall()).build());
+        int currentHeadcount = hallStatus.getCurrentHeadcount() != null ? hallStatus.getCurrentHeadcount() : 0;
+        int arrived = arrivedCount != null ? arrivedCount : 0;
+        String currentLevel = getCapacityLevel(currentHeadcount + arrived, booking.getGuestCount(), booking.getHall().getCapacityStanding());
+        if ("CRITICAL".equals(currentLevel)) {
             response.put("verdict", "HOLD");
             response.put("reasonCode", "CAPACITY_EXCEEDED");
             return response;
@@ -140,6 +147,15 @@ public class EntryService {
         hallStatus.setStatus("OCCUPIED");
         hallStatus.setCurrentBooking(booking);
         hallStatus.setCurrentHeadcount(arrivedCount != null ? arrivedCount : 0);
+        
+        // Initial peak headcount update
+        if (booking.getPeakHeadcount() == null || (arrivedCount != null && arrivedCount > booking.getPeakHeadcount())) {
+            booking.setPeakHeadcount(arrivedCount != null ? arrivedCount : 0);
+            bookingRepository.save(booking);
+        }
+        
+        String initialLevel = getCapacityLevel(hallStatus.getCurrentHeadcount(), booking.getGuestCount(), booking.getHall().getCapacityStanding());
+        hallStatus.setCapacityAlertLevel(initialLevel);
         hallLiveStatusRepository.save(hallStatus);
         
         // Log OTP_VERIFIED and CHECK_IN
@@ -178,6 +194,15 @@ public class EntryService {
             throw new IllegalStateException("Booking is not in CHECKED_IN state");
         }
         
+        // Compute overstay minutes
+        java.time.Instant now = java.time.Instant.now();
+        if (now.isAfter(booking.getEndAt())) {
+            long minutes = java.time.Duration.between(booking.getEndAt(), now).toMinutes();
+            booking.setOverstayMinutes((int) minutes);
+            // In a real app we'd calculate fee based on overstay_fee_per_15min,
+            // but for this MVP the overstay minutes are recorded and owner settles offline.
+        }
+
         // 1. Save AFTER handover report
         com.smartspace.entry.entity.HandoverReport report = com.smartspace.entry.entity.HandoverReport.builder()
                 .booking(booking)
@@ -199,6 +224,7 @@ public class EntryService {
         hallStatus.setStatus("CLEANING");
         hallStatus.setCurrentBooking(null);
         hallStatus.setCurrentHeadcount(0);
+        hallStatus.setCapacityAlertLevel(null);
         hallLiveStatusRepository.save(hallStatus);
         
         // 4. Log CHECK_OUT
@@ -228,6 +254,59 @@ public class EntryService {
             return entryLogRepository.save(entryLog);
         }
         return entryLog;
+    }
+
+    private String getCapacityLevel(int current, int declared, int maxCapacity) {
+        if (current > maxCapacity) return "CRITICAL";
+        if (current >= Math.ceil(1.25 * declared)) return "WARN";
+        if (current >= declared) return "NOTICE";
+        return "OK";
+    }
+
+    @Transactional(readOnly = true)
+    public HallLiveStatus getHallLiveStatus(Long hallId) {
+        return hallLiveStatusRepository.findById(hallId).orElse(null);
+    }
+
+    @Transactional
+    public Map<String, Object> updateHeadcount(Long bookingId, Integer count, Long watchmanHallId, Long watchmanUserId, String deviceId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new IllegalStateException("Booking not checked in");
+        }
+
+        HallLiveStatus status = hallLiveStatusRepository.findById(booking.getHall().getId()).orElseThrow();
+        
+        status.setCurrentHeadcount(count);
+        if (booking.getPeakHeadcount() == null || count > booking.getPeakHeadcount()) {
+            booking.setPeakHeadcount(count);
+            bookingRepository.save(booking);
+        }
+
+        String newLevel = getCapacityLevel(count, booking.getGuestCount(), booking.getHall().getCapacityStanding());
+        String oldLevel = status.getCapacityAlertLevel();
+        
+        Map<String, Object> res = new HashMap<>();
+        res.put("count", count);
+        res.put("level", newLevel);
+
+        if (!newLevel.equals(oldLevel)) {
+            status.setCapacityAlertLevel(newLevel);
+            logScan(booking, watchmanHallId, null, watchmanUserId, "CAPACITY_ALERT", newLevel, "LEVEL_CHANGE", "NONE", deviceId, count);
+            
+            if ("WARN".equals(newLevel) || "CRITICAL".equals(newLevel)) {
+                // Notify owner
+                Long ownerId = booking.getHall().getOwner().getId();
+                String message = String.format("Capacity %s for booking %s: %d/%d guests present.", 
+                        newLevel, booking.getBookingRef(), count, booking.getGuestCount());
+                notificationService.notifyUser(ownerId, "CAPACITY_" + newLevel, message, "HIGH");
+            }
+        }
+        
+        hallLiveStatusRepository.save(status);
+        logScan(booking, watchmanHallId, null, watchmanUserId, "HEADCOUNT", "GO", null, "NONE", deviceId, count);
+
+        return res;
     }
 
     @Transactional

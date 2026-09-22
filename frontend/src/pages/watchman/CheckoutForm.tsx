@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/api';
 
@@ -64,10 +64,53 @@ export default function CheckoutForm() {
         }
     };
 
+    const [bookingData, setBookingData] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBooking = async () => {
+            try {
+                const res = await api.get('/entry/today');
+                const booking = res.data.find((b: any) => b.id === Number(id));
+                setBookingData(booking);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchBooking();
+    }, [id]);
+
+    const getOverstayDetails = () => {
+        if (!bookingData || !bookingData.endAt) return null;
+        const endTime = new Date(bookingData.endAt);
+        const now = new Date();
+        if (now > endTime) {
+            const minutes = Math.floor((now.getTime() - endTime.getTime()) / 60000);
+            if (minutes > 0) {
+                return minutes;
+            }
+        }
+        return null;
+    };
+
+    const overstayMinutes = getOverstayDetails();
+
     return (
         <div className="p-4 flex flex-col min-h-screen pb-20">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">Checkout Report</h1>
             <div className="mb-4 text-sm text-gray-500">Booking #{id}</div>
+            
+            {overstayMinutes !== null && overstayMinutes > 0 && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6 shadow-sm">
+                    <h3 className="text-red-800 font-bold flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Overstay Detected
+                    </h3>
+                    <p className="text-red-700 mt-1 text-sm">
+                        This booking has overstayed by <strong>{overstayMinutes} minutes</strong>. 
+                        Record this checkout now to finalize the overstay penalty calculation.
+                    </p>
+                </div>
+            )}
             
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-6">
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
