@@ -126,4 +126,18 @@ public class EntryController {
         
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/handover/before")
+    public ResponseEntity<Void> submitBeforeHandover(@RequestBody com.smartspace.entry.dto.BeforeHandoverRequest request) {
+        Long watchmanUserId = 2L; // TODO: SecurityContext
+        entryService.submitBeforeHandover(request, watchmanUserId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<Void> checkoutBooking(@RequestBody com.smartspace.entry.dto.CheckoutRequest request) {
+        Long watchmanUserId = 2L; // TODO: SecurityContext
+        entryService.checkoutBooking(request, watchmanUserId);
+        return ResponseEntity.ok().build();
+    }
 }

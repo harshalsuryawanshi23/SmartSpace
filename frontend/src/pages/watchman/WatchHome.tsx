@@ -65,6 +65,16 @@ export default function WatchHome() {
                   {new Date(b.startAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
                   {new Date(b.endAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </div>
+                {b.status === 'CHECKED_IN' && (
+                  <div className="mt-3 flex justify-end">
+                    <button 
+                      onClick={() => navigate(`/watchman/checkout/${b.id}`)}
+                      className="px-4 py-2 bg-red-100 text-red-700 font-medium rounded-lg text-sm hover:bg-red-200"
+                    >
+                      Checkout & Handover
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

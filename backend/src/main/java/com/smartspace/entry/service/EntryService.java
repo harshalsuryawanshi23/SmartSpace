@@ -33,6 +33,7 @@ public class EntryService {
     private final EntryLogRepository entryLogRepository;
     private final HallLiveStatusRepository hallLiveStatusRepository;
     private final BookingStateMachine bookingStateMachine;
+    private final com.smartspace.entry.repository.HandoverReportRepository handoverReportRepository;
 
     @Transactional
     public Map<String, Object> scan(String token, Long watchmanHallId, Long watchmanUserId, String deviceId) {
@@ -152,6 +153,58 @@ public class EntryService {
         return response;
     }
 
+    @Transactional
+    public void submitBeforeHandover(com.smartspace.entry.dto.BeforeHandoverRequest request, Long watchmanUserId) {
+        Booking booking = bookingRepository.findById(request.getBookingId()).orElseThrow();
+        
+        com.smartspace.entry.entity.HandoverReport report = com.smartspace.entry.entity.HandoverReport.builder()
+                .booking(booking)
+                .phase(com.smartspace.entry.entity.HandoverReport.HandoverPhase.BEFORE)
+                .checklist(request.getChecklist())
+                .checklistScore(java.math.BigDecimal.ONE) // Simplified score calculation
+                .notes(request.getNotes())
+                .recordedBy(new com.smartspace.identity.entity.User(watchmanUserId))
+                .recordedAt(LocalDateTime.now())
+                .build();
+                
+        handoverReportRepository.save(report);
+    }
+
+    @Transactional
+    public void checkoutBooking(com.smartspace.entry.dto.CheckoutRequest request, Long watchmanUserId) {
+        Booking booking = bookingRepository.findById(request.getBookingId()).orElseThrow();
+        
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new IllegalStateException("Booking is not in CHECKED_IN state");
+        }
+        
+        // 1. Save AFTER handover report
+        com.smartspace.entry.entity.HandoverReport report = com.smartspace.entry.entity.HandoverReport.builder()
+                .booking(booking)
+                .phase(com.smartspace.entry.entity.HandoverReport.HandoverPhase.AFTER)
+                .checklist(request.getChecklist())
+                .checklistScore(java.math.BigDecimal.ONE) // Simplified score calculation
+                .notes(request.getNotes())
+                .recordedBy(new com.smartspace.identity.entity.User(watchmanUserId))
+                .recordedAt(LocalDateTime.now())
+                .build();
+        handoverReportRepository.save(report);
+                
+        // 2. Transition booking to CHECKED_OUT
+        bookingStateMachine.transition(booking, BookingStatus.CHECKED_OUT, com.smartspace.booking.entity.HistoryEventType.CHECKED_OUT, com.smartspace.booking.entity.ActorType.WATCHMAN, watchmanUserId, "{\"reason\": \"Watchman checked out\"}");
+        bookingRepository.save(booking);
+        
+        // 3. Update Hall Live Status to CLEANING
+        HallLiveStatus hallStatus = hallLiveStatusRepository.findById(booking.getHall().getId()).orElseThrow();
+        hallStatus.setStatus("CLEANING");
+        hallStatus.setCurrentBooking(null);
+        hallStatus.setCurrentHeadcount(0);
+        hallLiveStatusRepository.save(hallStatus);
+        
+        // 4. Log CHECK_OUT
+        logScan(booking, booking.getHall().getId(), null, watchmanUserId, "CHECK_OUT", "GO", null, "NONE", "internal", null);
+    }
+
     private EntryLog logScan(Booking booking, Long hallId, EntryCredential credential, Long watchmanUserId, 
                              String eventType, String verdict, String reasonCode, String identityMethod, 
                              String deviceId, Integer headcount) {
@@ -175,5 +228,38 @@ public class EntryService {
             return entryLogRepository.save(entryLog);
         }
         return entryLog;
+    }
+
+    @Transactional
+    public void sweepNoShows() {
+        // Find all CONFIRMED bookings where start time was > 2 hours ago
+        java.time.Instant twoHoursAgo = java.time.Instant.now().minus(java.time.Duration.ofHours(2));
+        java.util.List<Booking> noShows = bookingRepository.findAll().stream()
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED && b.getStartAt().isBefore(twoHoursAgo))
+                .collect(java.util.stream.Collectors.toList());
+                
+        for (Booking b : noShows) {
+            log.info("Marking booking {} as NO_SHOW", b.getId());
+            bookingStateMachine.transition(b, BookingStatus.NO_SHOW, com.smartspace.booking.entity.HistoryEventType.NO_SHOW, com.smartspace.booking.entity.ActorType.SYSTEM, null, "{\"reason\": \"No show after 2 hours\"}");
+            bookingRepository.save(b);
+        }
+    }
+
+    @Transactional
+    public void sweepCleaningHalls() {
+        // Find all CLEANING halls where updated_at was > 2 hours ago
+        // Since we don't have updated_at easily queryable via a simple findByStatus without a custom query,
+        // we'll fetch all CLEANING and check updated_at.
+        java.time.LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
+        
+        java.util.List<HallLiveStatus> cleaningHalls = hallLiveStatusRepository.findAll().stream()
+                .filter(hls -> "CLEANING".equals(hls.getStatus()) && hls.getUpdatedAt() != null && hls.getUpdatedAt().isBefore(twoHoursAgo))
+                .collect(java.util.stream.Collectors.toList());
+                
+        for (HallLiveStatus hls : cleaningHalls) {
+            log.info("Marking hall {} as FREE", hls.getHall().getId());
+            hls.setStatus("FREE");
+            hallLiveStatusRepository.save(hls);
+        }
     }
 }

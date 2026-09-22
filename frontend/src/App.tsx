@@ -25,6 +25,7 @@ import WatchmanLayout from './layouts/WatchmanLayout';
 import WatchHome from './pages/watchman/WatchHome';
 import Scanner from './pages/watchman/Scanner';
 import Verdict from './pages/watchman/Verdict';
+import CheckoutForm from './pages/watchman/CheckoutForm';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
               <Route index element={<WatchHome />} />
               <Route path="scan" element={<Scanner />} />
               <Route path="verdict" element={<Verdict />} />
+              <Route path="checkout/:id" element={<CheckoutForm />} />
             </Route>
           </Route>
 
