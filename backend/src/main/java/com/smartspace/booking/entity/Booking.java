@@ -1,62 +1,137 @@
 package com.smartspace.booking.entity;
 
+import com.smartspace.listing.entity.Hall;
+import com.smartspace.auth.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "bookings")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Booking {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, updatable = false, length = 36)
-    private String publicId;
+    @Column(nullable = false, updatable = false, unique = true, length = 36)
+    private String publicId = UUID.randomUUID().toString();
 
-    @Column(name = "renter_user_id", nullable = false)
-    private Long renterUserId;
+    @Column(name = "booking_ref", nullable = false, updatable = false, unique = true, length = 20)
+    private String bookingRef;
 
-    @Column(name = "hall_id", nullable = false)
-    private Long hallId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hall_id", nullable = false)
+    private Hall hall;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "renter_user_id", nullable = false)
+    private User renter;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false)
+    private BookingEventType eventType;
+
+    @Column(name = "event_title", nullable = false, length = 160)
+    private String eventTitle;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "theme_tags", columnDefinition = "json")
+    private String themeTags;
+
+    @Column(name = "guest_count", nullable = false)
+    private Integer guestCount;
+
+    @Column(name = "start_at", nullable = false)
+    private Instant startAt;
+
+    @Column(name = "end_at", nullable = false)
+    private Instant endAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private BookingStatus status;
+    private BookingStatus status = BookingStatus.PENDING_PAYMENT;
 
     @Column(name = "lock_expires_at")
-    private LocalDateTime lockExpiresAt;
+    private Instant lockExpiresAt;
 
+    @Column(name = "price_base", nullable = false, precision = 10, scale = 2)
+    private BigDecimal priceBase;
+
+    @Column(name = "price_member_discount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal priceMemberDiscount = BigDecimal.ZERO;
+
+    @Column(name = "price_platform_fee", nullable = false, precision = 10, scale = 2)
+    private BigDecimal pricePlatformFee = BigDecimal.ZERO;
+
+    @Column(name = "price_tax", nullable = false, precision = 10, scale = 2)
+    private BigDecimal priceTax = BigDecimal.ZERO;
+
+    @Column(name = "price_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal priceTotal;
+
+    @Column(nullable = false, length = 3)
+    private String currency = "INR";
+
+    @Column(name = "is_member_booking", nullable = false)
+    private boolean isMemberBooking;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancellation_policy", nullable = false)
+    private CancellationPolicy cancellationPolicy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancelled_by")
+    private ActorType cancelledBy;
+
+    @Column(name = "cancel_reason")
+    private String cancelReason;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "checked_in_at")
+    private Instant checkedInAt;
+
+    @Column(name = "checked_out_at")
+    private Instant checkedOutAt;
+
+    @Column(name = "arrived_headcount")
+    private Integer arrivedHeadcount;
+
+    @Column(name = "peak_headcount")
+    private Integer peakHeadcount;
+
+    @Column(name = "overstay_minutes", nullable = false)
+    private Integer overstayMinutes = 0;
+
+    @Column(name = "dispute_open", nullable = false)
+    private boolean disputeOpen = false;
+
+    @Column(name = "rating_window_closes_at")
+    private Instant ratingWindowClosesAt;
+
+    @Version
+    @Column(nullable = false)
+    private Integer version;
+
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
+    private Instant createdAt;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.publicId == null) {
-            this.publicId = java.util.UUID.randomUUID().toString();
-        }
-        if (this.status == null) {
-            this.status = BookingStatus.PENDING_PAYMENT;
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        if (this.updatedAt == null) {
-            this.updatedAt = LocalDateTime.now();
-        }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    private Instant updatedAt;
 }
