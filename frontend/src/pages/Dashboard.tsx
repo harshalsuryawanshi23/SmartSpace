@@ -1,5 +1,6 @@
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import LiveStatusWidget from '../components/owner/LiveStatusWidget';
 
 export const Dashboard = () => {
     const { user, logout } = useAuth();
@@ -34,12 +35,20 @@ export const Dashboard = () => {
             </nav>
 
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6 sm:px-0">
-                    <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-semibold text-gray-700">Dashboard</h2>
-                            <p className="mt-2 text-gray-500">More features coming soon...</p>
+                <div className="px-4 py-6 sm:px-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2">
+                        <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center bg-white">
+                            <div className="text-center">
+                                <h2 className="text-2xl font-semibold text-gray-700">Dashboard</h2>
+                                <p className="mt-2 text-gray-500">More features coming soon...</p>
+                            </div>
                         </div>
+                    </div>
+                    
+                    {/* Owner Widgets */}
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-700 mb-4">Live Halls</h2>
+                        <LiveStatusWidget />
                     </div>
                 </div>
             </main>

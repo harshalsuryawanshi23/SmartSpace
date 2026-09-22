@@ -20,6 +20,12 @@ import { KycIntro } from './pages/kyc/KycIntro';
 import { KycMockProvider } from './pages/kyc/KycMockProvider';
 import { KycStatus } from './pages/kyc/KycStatus';
 
+// Watchman
+import WatchmanLayout from './layouts/WatchmanLayout';
+import WatchHome from './pages/watchman/WatchHome';
+import Scanner from './pages/watchman/Scanner';
+import Verdict from './pages/watchman/Verdict';
+
 function App() {
   return (
     <AuthProvider>
@@ -44,6 +50,12 @@ function App() {
             <Route path="/kyc/mock" element={<KycMockProvider />} />
             <Route path="/kyc/status" element={<KycStatus />} />
 
+            {/* Watchman routes */}
+            <Route path="/watchman" element={<WatchmanLayout />}>
+              <Route index element={<WatchHome />} />
+              <Route path="scan" element={<Scanner />} />
+              <Route path="verdict" element={<Verdict />} />
+            </Route>
           </Route>
 
           {/* Catch all */}

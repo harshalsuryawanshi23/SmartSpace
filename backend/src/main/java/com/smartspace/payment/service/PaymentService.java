@@ -90,7 +90,7 @@ public class PaymentService {
         Booking booking = payment.getBooking();
         if (booking.getStatus() == BookingStatus.PENDING_PAYMENT) {
             // Transition booking to CONFIRMED
-            bookingStateMachine.transition(booking, BookingStatus.CONFIRMED, "system", "Payment captured");
+            bookingStateMachine.transition(booking, BookingStatus.CONFIRMED, com.smartspace.booking.entity.HistoryEventType.PAID, com.smartspace.booking.entity.ActorType.SYSTEM, null, "{\"reason\": \"Payment captured\"}");
             bookingRepository.save(booking);
             
             // Issue QR Credential

@@ -51,7 +51,7 @@ public class BookingStateMachine {
                 valid = (current == BookingStatus.PENDING_PAYMENT);
                 break;
             case CANCELLED:
-                valid = Arrays.asList(BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED).contains(current);
+                valid = Arrays.asList(BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN).contains(current);
                 break;
             case CHECKED_IN:
             case NO_SHOW:
