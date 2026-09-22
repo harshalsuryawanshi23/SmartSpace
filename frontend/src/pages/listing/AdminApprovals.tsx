@@ -27,7 +27,7 @@ export const AdminApprovals: React.FC = () => {
         const reason = approve ? '' : prompt('Reason for rejection:');
         if (!approve && !reason) return;
         try {
-            await api.post(/v1/admin/approvals/societies/, { approve, reason });
+            await api.post(`/v1/admin/approvals/societies/${id}`, { approve, reason });
             toast.success(approve ? 'Society Approved' : 'Society Rejected');
             fetchData();
         } catch (error) {
@@ -39,7 +39,7 @@ export const AdminApprovals: React.FC = () => {
         const reason = approve ? '' : prompt('Reason for rejection:');
         if (!approve && !reason) return;
         try {
-            await api.post(/v1/admin/approvals/halls/, { approve, reason });
+            await api.post(`/v1/admin/approvals/halls/${id}`, { approve, reason });
             toast.success(approve ? 'Hall Approved' : 'Hall Rejected');
             fetchData();
         } catch (error) {

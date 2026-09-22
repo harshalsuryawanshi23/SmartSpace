@@ -262,4 +262,86 @@ public class EntryService {
             hallLiveStatusRepository.save(hls);
         }
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<String> getRevokedJtis() {
+        return entryCredentialRepository.findRevokedJtis();
+    }
+
+    @Transactional
+    public com.smartspace.entry.dto.OfflineSyncResponse processOfflineSync(com.smartspace.entry.dto.OfflineSyncRequest request, Long watchmanUserId) {
+        int processed = 0;
+        int conflicts = 0;
+        java.util.List<com.smartspace.entry.dto.OfflineSyncResponse.SyncConflict> conflictDetails = new java.util.ArrayList<>();
+        
+        for (com.smartspace.entry.dto.OfflineSyncRequest.OfflineLog offLog : request.getLogs()) {
+            try {
+                // Check if already processed (idempotent by clientEventId)
+                if (entryLogRepository.existsByClientEventId(offLog.getClientEventId())) {
+                    continue; // Skip, already processed
+                }
+
+                // If there's a JTI, get the credential and booking
+                EntryCredential credential = null;
+                Booking booking = null;
+                if (offLog.getJti() != null) {
+                    Optional<EntryCredential> credOpt = entryCredentialRepository.findByJti(offLog.getJti());
+                    if (credOpt.isPresent()) {
+                        credential = credOpt.get();
+                        booking = credential.getBooking();
+                    }
+                }
+                
+                // If the booking is found and the verdict is GO/CHECK_IN, transition it.
+                // Since this was offline, we mark the identity method as MANUAL_OFFLINE.
+                if (booking != null && "CHECK_IN".equals(offLog.getEventType()) && "GO".equals(offLog.getVerdict())) {
+                    if (booking.getStatus() != BookingStatus.CHECKED_IN && booking.getStatus() != BookingStatus.CHECKED_OUT) {
+                        bookingStateMachine.transition(booking, BookingStatus.CHECKED_IN, 
+                            com.smartspace.booking.entity.HistoryEventType.CHECKED_IN, 
+                            com.smartspace.booking.entity.ActorType.WATCHMAN, 
+                            watchmanUserId, 
+                            "{\"reason\": \"Offline sync\", \"eventId\": \"" + offLog.getClientEventId() + "\"}");
+                        bookingRepository.save(booking);
+                    }
+                }
+
+                // Create the log entry
+                EntryLog entryLog = EntryLog.builder()
+                        .clientEventId(offLog.getClientEventId())
+                        .booking(booking)
+                        .hall(booking != null ? booking.getHall() : (request.getHallId() != null ? new com.smartspace.hall.entity.Hall(request.getHallId()) : null))
+                        .credential(credential)
+                        .watchmanUserId(watchmanUserId)
+                        .eventType(offLog.getEventType())
+                        .verdict(offLog.getVerdict())
+                        .reasonCode(offLog.getReasonCode())
+                        .identityMethod("MANUAL_OFFLINE")
+                        .offline(true)
+                        .deviceId(offLog.getDeviceId())
+                        .headcount(offLog.getHeadcount())
+                        .occurredAt(LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(offLog.getOccurredAtEpochMs()), java.time.ZoneId.systemDefault()))
+                        .build();
+                
+                if (entryLog.getHall() != null && entryLog.getHall().getId() != null) {
+                    entryLogRepository.save(entryLog);
+                }
+                
+                processed++;
+                
+            } catch (Exception e) {
+                log.error("Failed to process offline log {}", offLog.getClientEventId(), e);
+                conflicts++;
+                conflictDetails.add(com.smartspace.entry.dto.OfflineSyncResponse.SyncConflict.builder()
+                        .clientEventId(offLog.getClientEventId())
+                        .reason(e.getMessage())
+                        .build());
+            }
+        }
+        
+        return com.smartspace.entry.dto.OfflineSyncResponse.builder()
+                .processedCount(processed)
+                .conflictCount(conflicts)
+                .conflicts(conflictDetails)
+                .build();
+    }
 }

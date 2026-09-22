@@ -87,7 +87,7 @@ export default function Search() {
                     <p>Up to {hall.capacityStanding} guests</p>
                   </div>
                   <div className="mt-3 text-sm">
-                    <Link to={/halls/} className="font-medium text-teal-600 hover:text-teal-500">
+                    <Link to={`/halls/${hall.id}`} className="font-medium text-teal-600 hover:text-teal-500">
                       View Details &rarr;
                     </Link>
                   </div>

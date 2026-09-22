@@ -39,7 +39,7 @@ export default function SlotGrid({ slots, onSelect }: SlotGridProps) {
               role="button"
               tabIndex={0}
               aria-label={slot.time + ' ' + slot.state}
-              className={	ext-center py-2 text-sm rounded  + bgColor +   + cursor}
+              className={"text-center py-2 text-sm rounded " + bgColor + " " + cursor}
               onClick={() => {
                 if (slot.state === 'FREE' && onSelect) onSelect(slot.time);
               }}

@@ -25,7 +25,7 @@ export const OwnerDashboard: React.FC = () => {
 
     const submitHall = async (id: string) => {
         try {
-            await api.post(/v1/owner/halls/\/submit);
+            await api.post(`/v1/owner/halls/${id}/submit`);
             toast.success('Hall submitted for approval!');
             fetchDashboardData();
         } catch (error) {
@@ -48,7 +48,7 @@ export const OwnerDashboard: React.FC = () => {
                             <div key={s.id} className="p-4 bg-white rounded shadow">
                                 <h3 className="font-bold text-lg">{s.name}</h3>
                                 <p className="text-sm text-gray-600 mb-2">{s.locality}, {s.city}</p>
-                                <span className={px-2 py-1 text-xs rounded font-bold \}>
+                                <span className="px-2 py-1 text-xs rounded font-bold">
                                     {s.verificationStatus}
                                 </span>
                             </div>

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { QrValidationService } from '../../services/QrValidationService';
+import { offlineSyncService } from '../../services/OfflineSyncService';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function Scanner() {
   const [manualToken, setManualToken] = useState('');
@@ -12,15 +15,43 @@ export default function Scanner() {
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await fetch('/api/v1/entry/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, deviceId: 'browser-test' })
-      });
-      const data = await res.json();
+      const validation = await QrValidationService.validateToken(token);
       
-      // Navigate to verdict page with data
-      navigate('/watchman/verdict', { state: { verdictData: data } });
+      if (!navigator.onLine || validation.offlineMode) {
+          // OFFLINE PATH
+          const eventId = uuidv4();
+          const verdict = validation.isValid ? 'GO' : 'STOP';
+          
+          await offlineSyncService.logEvent({
+              clientEventId: eventId,
+              jti: validation.payload?.jti,
+              eventType: 'CHECK_IN',
+              verdict: verdict,
+              reasonCode: validation.reasonCode,
+              identityMethod: 'MANUAL_OFFLINE',
+              deviceId: 'browser-test',
+              headcount: 1, // Assumption for offline
+              occurredAtEpochMs: Date.now()
+          });
+
+          navigate('/watchman/verdict', { state: { 
+              verdictData: {
+                  verdict: verdict,
+                  reasonCode: validation.reasonCode,
+                  message: validation.isValid ? "Offline entry recorded" : "Offline validation failed",
+                  booking: validation.payload ? { id: validation.payload.bkg } : null
+              } 
+          }});
+      } else {
+          // ONLINE PATH
+          const res = await fetch('/api/v1/entry/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, deviceId: 'browser-test' })
+          });
+          const data = await res.json();
+          navigate('/watchman/verdict', { state: { verdictData: data } });
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to scan token. Please try again.');
@@ -38,7 +69,7 @@ export default function Scanner() {
   return (
     <div className="flex flex-col items-center h-full max-w-md mx-auto relative">
       <div className="w-full flex justify-between items-center mb-6">
-        <button onClick={() => navigate(-1)} className="text-gray-600 p-2">
+        <button onClick={() => navigate(-1)} className="text-gray-600 p-2" aria-label="Go back">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         <h2 className="text-xl font-bold text-gray-800">Scan Entry QR</h2>
@@ -65,7 +96,9 @@ export default function Scanner() {
       <div className="w-full bg-white p-4 rounded-xl shadow-md mt-auto">
         <p className="text-sm text-gray-500 mb-2 font-medium">Manual Fallback (Testing)</p>
         <form onSubmit={handleManualSubmit} className="flex gap-2">
+          <label htmlFor="manual-token" className="sr-only">Manual Token</label>
           <input
+            id="manual-token"
             type="text"
             value={manualToken}
             onChange={(e) => setManualToken(e.target.value)}

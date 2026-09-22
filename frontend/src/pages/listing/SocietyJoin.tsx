@@ -23,7 +23,7 @@ export const SocietyJoin: React.FC = () => {
             return;
         }
         try {
-            await api.post(/v1/societies//join-requests, { flatLabel });
+            await api.post(`/v1/societies/${selectedSocietyId}/join-requests`, { flatLabel });
             toast.success('Join request sent successfully!');
             setSelectedSocietyId(null);
             setFlatLabel('');
@@ -51,7 +51,7 @@ export const SocietyJoin: React.FC = () => {
 
             <div className="space-y-4">
                 {societies.map((s) => (
-                    <div key={s.id} className={p-4 border rounded } onClick={() => setSelectedSocietyId(s.id)}>
+                    <div key={s.id} className={`p-4 border rounded cursor-pointer ${selectedSocietyId === s.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`} onClick={() => setSelectedSocietyId(s.id)}>
                         <h3 className="font-bold text-lg">{s.name}</h3>
                         <p className="text-gray-600">{s.locality}, {s.city}</p>
                     </div>

@@ -9,7 +9,7 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Typically we would look up locality lat/lng, but for MVP we might just route
-    navigate(/search?locality= + encodeURIComponent(locality) + &guests= + guests);
+    navigate(`/search?locality=${encodeURIComponent(locality)}&guests=${guests}`);
   };
 
   return (
