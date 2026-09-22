@@ -10,6 +10,11 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { ForceChangePassword } from './pages/ForceChangePassword';
 
+// Discovery
+import Home from './pages/discovery/Home';
+import Search from './pages/discovery/Search';
+import HallDetail from './pages/discovery/HallDetail';
+
 // KYC
 import { KycIntro } from './pages/kyc/KycIntro';
 import { KycMockProvider } from './pages/kyc/KycMockProvider';
@@ -26,6 +31,9 @@ function App() {
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/halls/:id" element={<HallDetail />} />
           {/* Protected routes */}
           <Route element={<AuthGuard />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -36,7 +44,6 @@ function App() {
             <Route path="/kyc/mock" element={<KycMockProvider />} />
             <Route path="/kyc/status" element={<KycStatus />} />
 
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
 
           {/* Catch all */}
