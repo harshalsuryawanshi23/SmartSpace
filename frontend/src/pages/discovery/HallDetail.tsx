@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SlotGrid from '../../components/discovery/SlotGrid';
+import { TrustBadge } from '../../components/trust/TrustBadge';
 
 export default function HallDetail() {
   const { id } = useParams<{ id: string }>();
   const [hall, setHall] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Mock trust score for now
+  const mockTrustScore = {
+    score: 73.9,
+    badge: 'TRUSTED' as const,
+    componentsJson: JSON.stringify({
+      priorMean: 0.7,
+      sumWeightedScore: 6.8,
+      sumWeight: 8,
+      penalty: 0.0667,
+      ownerCancellations: 1
+    })
+  };
 
   // Mock slots for now
   const mockSlots = [
@@ -27,7 +41,7 @@ export default function HallDetail() {
     const fetchHall = async () => {
       setLoading(true);
       try {
-        const res = await fetch(/api/v1/halls/ + id);
+        const res = await fetch(`/api/v1/halls/${id}`);
         if (res.ok) {
           const data = await res.json();
           setHall(data);
@@ -50,11 +64,14 @@ export default function HallDetail() {
         <Link to="/search" className="text-teal-600 hover:text-teal-900">&larr; Back to Search</Link>
       </div>
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            {hall.locality}, {hall.city} &middot; ?{hall.basePricePerHour} / hr &middot; {hall.capacityStanding} guests max
-          </p>
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
+          <div>
+            <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              {hall.locality}, {hall.city} &middot; ₹{hall.basePricePerHour} / hr &middot; {hall.capacityStanding} guests max
+            </p>
+          </div>
+          <TrustBadge score={mockTrustScore.score} badge={mockTrustScore.badge} componentsJson={mockTrustScore.componentsJson} />
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">

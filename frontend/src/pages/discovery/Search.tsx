@@ -1,10 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { TrustBadge } from '../../components/trust/TrustBadge';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const [halls, setHalls] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Mock trust score for now
+  const mockTrustScore = {
+    score: 73.9,
+    badge: 'TRUSTED' as const,
+    componentsJson: JSON.stringify({
+      priorMean: 0.7,
+      sumWeightedScore: 6.8,
+      sumWeight: 8,
+      penalty: 0.0667,
+      ownerCancellations: 1
+    })
+  };
 
   useEffect(() => {
     // Basic mock fetch for MVP, assume lat/lng are 18.5, 73.8
@@ -63,7 +77,10 @@ export default function Search() {
             {halls.map((hall) => (
               <div key={hall.id} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
                 <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
+                    <TrustBadge score={mockTrustScore.score} badge={mockTrustScore.badge} componentsJson={mockTrustScore.componentsJson} showLabel={false} />
+                  </div>
                   <div className="mt-2 max-w-xl text-sm text-gray-500">
                     <p>{hall.locality}, {hall.city}</p>
                     <p>?{hall.basePricePerHour} / hr</p>
