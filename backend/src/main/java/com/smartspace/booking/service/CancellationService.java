@@ -25,6 +25,7 @@ public class CancellationService {
     private final BookingCellRepository bookingCellRepository;
     private final BookingStateMachine stateMachine;
     private final Clock clock;
+    private final com.smartspace.payment.service.PaymentService paymentService;
 
     public RefundPreview previewRefund(Booking booking, ActorType actor) {
         BigDecimal refundAmount = BigDecimal.ZERO;
@@ -71,7 +72,13 @@ public class CancellationService {
         // Release cells
         bookingCellRepository.deleteByBookingId(booking.getId());
 
-        // TODO: Enqueue refund processing if preview.getExpectedRefund() > 0
+        // Enqueue refund processing if preview.getExpectedRefund() > 0
+        if (preview.getExpectedRefund().compareTo(BigDecimal.ZERO) > 0) {
+            com.smartspace.payment.entity.RefundReason refundReason = actor == ActorType.OWNER ? 
+                    com.smartspace.payment.entity.RefundReason.OWNER_CANCEL : 
+                    com.smartspace.payment.entity.RefundReason.RENTER_CANCEL;
+            paymentService.initiateRefundForBooking(booking.getId(), preview.getExpectedRefund(), refundReason);
+        }
 
         return booking;
     }
