@@ -7,9 +7,12 @@ import com.smartspace.booking.service.BookingService;
 import com.smartspace.entry.entity.EntryCredential;
 import com.smartspace.entry.repository.EntryCredentialRepository;
 import com.smartspace.entry.service.EntryService;
+import com.smartspace.entry.service.EvidenceService;
 import com.smartspace.entry.service.QrKeyGeneratorService;
 import com.smartspace.entry.service.QrTokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +36,7 @@ public class EntryController {
     private final BookingRepository bookingRepository;
     private final EntryCredentialRepository entryCredentialRepository;
     private final EntryService entryService;
+    private final EvidenceService evidenceService;
 
     @GetMapping("/public-keys")
     public ResponseEntity<Map<String, List<Map<String, String>>>> getPublicKeys() {
@@ -163,5 +167,26 @@ public class EntryController {
         Long watchmanHallId = 1L; // TODO: SecurityContext
         Map<String, Object> result = entryService.updateHeadcount(request.getBookingId(), request.getCount(), watchmanHallId, watchmanUserId, request.getDeviceId());
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/bookings/{id}/evidence.pdf")
+    public ResponseEntity<byte[]> getEvidencePdf(@PathVariable Long id) {
+        // TODO: SecurityContext (Admin, Renter, Owner, Watchman allowed)
+        byte[] pdfBytes = evidenceService.generateEvidencePdf(id);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "evidence_BK-" + id + ".pdf");
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
+    @PostMapping("/bookings/{id}/checkin-photos")
+    public ResponseEntity<Void> uploadCheckinPhotos(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        // TODO: SecurityContext (Watchman)
+        // Store BEFORE photos with hash logic (omitted for MVP)
+        return ResponseEntity.ok().build();
     }
 }

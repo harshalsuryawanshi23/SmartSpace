@@ -27,6 +27,9 @@ import Scanner from './pages/watchman/Scanner';
 import Verdict from './pages/watchman/Verdict';
 import CheckoutForm from './pages/watchman/CheckoutForm';
 
+// Decorator
+import DecoratorDashboard from './pages/decorator/DecoratorDashboard';
+
 function App() {
   return (
     <AuthProvider>
@@ -58,6 +61,9 @@ function App() {
               <Route path="verdict" element={<Verdict />} />
               <Route path="checkout/:id" element={<CheckoutForm />} />
             </Route>
+
+            {/* Decorator routes */}
+            <Route path="/decorator/dashboard" element={<DecoratorDashboard />} />
           </Route>
 
           {/* Catch all */}

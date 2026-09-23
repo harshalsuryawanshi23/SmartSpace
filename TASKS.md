@@ -285,19 +285,19 @@
 **Tier:** P0 · **Branch:** `feature/p0-decorators`
 **Exit criteria:** Renter gets ranked, explained decorator matches and can enquire.
 
-- [ ] **TASK-108** Migration V7 (decorators, packages, blackouts, enquiries)  
+- [x] **TASK-108** Migration V7 (decorators, packages, blackouts, enquiries)  
   *Refs:* §5 V7 · *Done when:* Applies
-- [ ] **TASK-109** Decorator profile/package/blackout APIs + admin verification  
+- [x] **TASK-109** Decorator profile/package/blackout APIs + admin verification  
   *Refs:* §13.1-13.2 · *Done when:* Only approved appear
-- [ ] **TASK-110** `MatchScorer` + hard filters F1–F5 + weights config  
+- [x] **TASK-110** `MatchScorer` + hard filters F1–F5 + weights config  
   *Refs:* §13.4 · *Done when:* Worked example = **93**; weights sum to 1.0
-- [ ] **TASK-111** Explanations/warnings generator (localised templates)  
+- [x] **TASK-111** Explanations/warnings generator (localised templates)  
   *Refs:* §13.4 · *Done when:* Each factor produces expected text
-- [ ] **TASK-112** Match endpoints (booking-level and hall-level)  
+- [x] **TASK-112** Match endpoints (booking-level and hall-level)  
   *Refs:* §13.3 · *Done when:* Top-N sorted; best package per decorator
-- [ ] **TASK-113** Enquiry workflow (send → respond → confirm) + expiry job  
+- [x] **TASK-113** Enquiry workflow (send → respond → confirm) + expiry job  
   *Refs:* §13.5 · *Done when:* State transitions tested
-- [ ] **TASK-114** Frontend: Decorator directory/profile, DecoratorMatchCard, budget/theme pickers, enquiry UI  
+- [x] **TASK-114** Frontend: Decorator directory/profile, DecoratorMatchCard, budget/theme pickers, enquiry UI  
   *Refs:* DESIGN §7 · *Done when:* Reasons visible on every card
 - [ ] **TASK-115** Frontend: Decorator console (profile, packages, availability, enquiry inbox + quote)  
   *Refs:* §21.3 · *Done when:* All states
@@ -382,11 +382,11 @@
 **Tier:** P2 · **Branch:** `feature/p2-pass-evidence`
 **Exit criteria:** Decorators can enter for setup; disputes have objective evidence.
 
-- [ ] **TASK-144** SETUP cell reservation on confirm + fallback 'setup inside slot'  
+- [x] **TASK-144** SETUP cell reservation on confirm + fallback 'setup inside slot'  
   *Refs:* §13.5 · *Done when:* Conflict case handled
-- [ ] **TASK-145** DECORATOR credential issue/revoke + pass endpoint + vendor pass screen  
+- [x] **TASK-145** DECORATOR credential issue/revoke + pass endpoint + vendor pass screen  
   *Refs:* §13.6 · *Done when:* Pass valid only in window
-- [ ] **TASK-146** Watchman DECORATOR verdict screen + DECORATOR_IN/OUT logs + notifications  
+- [x] **TASK-146** Watchman DECORATOR verdict screen + DECORATOR_IN/OUT logs + notifications  
   *Refs:* §13.6 · *Done when:* E2E-08 full path passes
 - [ ] **TASK-147** Optional renter approval for decorator entry  
   *Refs:* §13.6 · *Done when:* HOLD until approved / timeout

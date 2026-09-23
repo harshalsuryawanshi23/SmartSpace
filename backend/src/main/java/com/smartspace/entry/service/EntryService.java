@@ -67,6 +67,29 @@ public class EntryService {
         EntryCredential credential = entryCredentialRepository.findByJti(jti).orElseThrow();
         Booking booking = credential.getBooking();
         
+        // Handle Decorator Pass
+        if ("DECORATOR".equals(credential.getKind())) {
+            if (booking.getStatus() != BookingStatus.CONFIRMED && booking.getStatus() != BookingStatus.CHECKED_IN) {
+                response.put("verdict", "STOP");
+                response.put("reasonCode", "BOOKING_NOT_ACTIVE");
+                return response;
+            }
+            
+            // For simplicity, alternating IN and OUT based on previous logs could be done here.
+            // Assuming IN for first scan.
+            logScan(booking, watchmanHallId, credential, watchmanUserId, "DECORATOR_IN", "GO", null, "NONE", deviceId, null);
+            
+            response.put("verdict", "GO");
+            response.put("role", "DECORATOR");
+            response.put("bookingRef", booking.getBookingRef());
+            response.put("displayName", booking.getRenter().getName());
+            
+            // Send in-app notice (Placeholder for notification service call)
+            // notificationService.sendNotification(booking.getRenter().getId(), "Decorator arrived");
+            
+            return response;
+        }
+        
         // 2. Check ALREADY_CHECKED_IN for Reentry
         if (booking.getStatus() == BookingStatus.CHECKED_IN) {
             // Re-entry flow

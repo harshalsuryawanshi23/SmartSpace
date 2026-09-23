@@ -11,6 +11,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [alternatives, setAlternatives] = useState<any[]>([]);
 
   // Step 1: Slot Selection
   const [date, setDate] = useState('');
@@ -83,6 +84,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
     try {
       setLoading(true);
       setError('');
+      setAlternatives([]);
       
       const startAt = new Date(`${date}T${startTime}:00`).toISOString();
       const endAt = new Date(`${date}T${endTime}:00`).toISOString();
@@ -109,6 +111,9 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
 
       if (!res.ok) {
         const data = await res.json();
+        if (data.errorCode === 'SLOT_UNAVAILABLE' && data.alternatives) {
+           setAlternatives(data.alternatives);
+        }
         throw new Error(data.message || 'Booking failed');
       }
 
@@ -133,6 +138,21 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
+
+      {alternatives.length > 0 && (
+        <div className="mb-4 p-4 border border-yellow-400 bg-yellow-50 rounded">
+          <h4 className="font-semibold text-yellow-800 mb-2">Alternative Options</h4>
+          <ul className="space-y-2 text-sm text-yellow-900">
+            {alternatives.map((alt, i) => (
+              <li key={i} className="flex flex-col border-b border-yellow-200 pb-2">
+                <span><strong>Try this time:</strong> {new Date(alt.startAt).toLocaleString()} - {new Date(alt.endAt).toLocaleTimeString()}</span>
+                {/* Note: Clicking this could theoretically update the form state and fetch a new quote */}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-yellow-700">Please select one of the times above in Step 1 to proceed.</p>
+        </div>
+      )}
 
       {step === 1 && (
         <div className="space-y-4">

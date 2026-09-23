@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SlotGrid from '../../components/discovery/SlotGrid';
 import { TrustBadge } from '../../components/trust/TrustBadge';
+import DecoratorMatches from '../../components/discovery/DecoratorMatches';
 
 export default function HallDetail() {
   const { id } = useParams<{ id: string }>();
@@ -128,6 +129,8 @@ export default function HallDetail() {
           </div>
         </div>
       )}
+
+      {id && <DecoratorMatches hallId={id} />}
 
       <div className="mt-6 flex justify-end">
         <button className="bg-teal-600 text-white px-6 py-2 rounded shadow hover:bg-teal-700 disabled:opacity-50" disabled={selectedSlots.length === 0}>

@@ -13,6 +13,8 @@ import com.smartspace.booking.repository.IdempotencyKeyRepository;
 import com.smartspace.common.exception.DomainException;
 import com.smartspace.listing.entity.Hall;
 import com.smartspace.listing.repository.HallRepository;
+import com.smartspace.user.repository.SocietyMemberRepository;
+import com.smartspace.user.entity.SocietyMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,19 +34,22 @@ public class BookingService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final IdempotencyKeyRepository idempotencyKeyRepository;
+    private final SocietyMemberRepository societyMemberRepository;
     private final BookingRulesValidator rulesValidator;
     private final PriceCalculator priceCalculator;
     private final SlotService slotService;
+    private final AlternativesService alternativesService;
     private final BookingStateMachine stateMachine;
     private final ObjectMapper objectMapper;
     private final Clock clock;
 
     public PriceBreakdown quote(BookingQuoteRequest req, Long userId) {
         Hall hall = hallRepository.findById(req.getHallId())
-                .orElseThrow(() -> new DomainException("HALL_NOT_FOUND", "Hall not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Hall not found"));
         
-        // Check if member (stubbed as false for now, or check society_members)
-        boolean isMember = false; 
+        boolean isMember = societyMemberRepository.findByUserIdAndHallId(userId, hall.getId())
+                .map(m -> "APPROVED".equals(m.getStatus()))
+                .orElse(false);
 
         rulesValidator.validate(hall, req.getStartAt(), req.getEndAt(), req.getGuestCount(), isMember, Instant.now(clock));
         return priceCalculator.calculate(hall, req.getStartAt(), req.getEndAt(), isMember);
@@ -63,7 +68,7 @@ public class BookingService {
                     throw new RuntimeException("Error parsing idempotency response", e);
                 }
             } else {
-                throw new DomainException("CONCURRENT_REQUEST", "A booking request is already in progress");
+                throw new DomainException(com.smartspace.common.exception.ErrorCode.IDEMPOTENCY_CONFLICT, "A booking request is already in progress");
             }
         }
 
@@ -75,11 +80,13 @@ public class BookingService {
         idempotencyKeyRepository.save(newKey);
 
         Hall hall = hallRepository.findById(req.getHallId())
-                .orElseThrow(() -> new DomainException("HALL_NOT_FOUND", "Hall not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Hall not found"));
         User renter = userRepository.findById(userId)
-                .orElseThrow(() -> new DomainException("USER_NOT_FOUND", "User not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "User not found"));
 
-        boolean isMember = false;
+        boolean isMember = societyMemberRepository.findByUserIdAndHallId(userId, hall.getId())
+                .map(m -> "APPROVED".equals(m.getStatus()))
+                .orElse(false);
 
         rulesValidator.validate(hall, req.getStartAt(), req.getEndAt(), req.getGuestCount(), isMember, Instant.now(clock));
         PriceBreakdown price = priceCalculator.calculate(hall, req.getStartAt(), req.getEndAt(), isMember);
@@ -115,7 +122,13 @@ public class BookingService {
         booking = bookingRepository.save(booking);
 
         // Reserve cells - throws SlotUnavailableException if conflict
-        slotService.reserve(hall, req.getStartAt(), req.getEndAt(), booking);
+        try {
+            slotService.reserve(hall, req.getStartAt(), req.getEndAt(), booking);
+        } catch (Exception e) {
+            // Waitlist / Alternatives logic
+            java.util.Map<String, Object> altPayload = alternativesService.computeAlternatives(hall.getId(), req.getStartAt(), req.getEndAt(), req.getGuestCount());
+            throw new DomainException(com.smartspace.common.exception.ErrorCode.SLOT_UNAVAILABLE, "The slot is no longer available. Alternatives attached.", null, (java.util.List) altPayload.get("alternatives"));
+        }
 
         // Record state transition
         stateMachine.transition(booking, BookingStatus.PENDING_PAYMENT, HistoryEventType.CREATED, ActorType.RENTER, userId, "{}");
@@ -138,6 +151,6 @@ public class BookingService {
 
     public Booking getBooking(Long bookingId) {
         return bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new DomainException("BOOKING_NOT_FOUND", "Booking not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Booking not found"));
     }
 }
