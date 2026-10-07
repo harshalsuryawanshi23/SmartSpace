@@ -26,7 +26,7 @@ public class HandoverPhoto {
     @Column(name = "file_path", nullable = false)
     private String filePath;
 
-    @Column(name = "sha256", nullable = false, length = 64)
+    @Column(name = "sha256", nullable = false, length = 64, columnDefinition = "CHAR(64)")
     private String sha256;
 
     @Column(name = "taken_at", nullable = false)

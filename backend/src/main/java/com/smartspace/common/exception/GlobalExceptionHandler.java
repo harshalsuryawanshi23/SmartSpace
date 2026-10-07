@@ -66,6 +66,7 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .traceId(MDC.get("traceId"))
                 .build();
+        ex.printStackTrace();
 
         // In production we should log the full stack trace, but only return the ApiError
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);

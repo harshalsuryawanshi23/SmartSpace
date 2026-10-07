@@ -1,7 +1,65 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
+import { apiClient as api } from "../../lib/apiClient";
+import { toast } from "react-hot-toast";
 
 export const AdminConsole: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'disputes' | 'platform'>('users');
+  const [users, setUsers] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (activeTab === 'users') {
+          const res = await api.get('/admin/users');
+          setUsers(res.data);
+        } else if (activeTab === 'disputes') {
+          const res = await api.get('/admin/disputes');
+          setDisputes(res.data);
+        }
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          setError("Endpoint not yet implemented. Waiting for backend completion.");
+          setUsers([]);
+          setDisputes([]);
+        } else {
+          setError("Failed to load data.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [activeTab]);
+
+  const handleSuspend = async (userId: number) => {
+    try {
+      await api.post(`/admin/users/${userId}/suspend?reason=Admin Action`);
+      toast.success("User suspended");
+      setUsers(users.map(u => u.id === userId ? { ...u, status: 'SUSPENDED' } : u));
+    } catch {
+      toast.error("Failed to suspend user");
+    }
+  };
+
+  const handleResolveDispute = async (id: number, resolutionType: string) => {
+    try {
+      await api.post(`/admin/disputes/${id}/resolve`, {
+        resolutionType,
+        adminNotes: 'Resolved via admin console',
+        amountToRefund: 0,
+        amountToCharge: 0
+      });
+      toast.success("Dispute resolved");
+      setDisputes(disputes.filter(d => d.id !== id));
+    } catch {
+      toast.error("Failed to resolve dispute");
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -33,75 +91,84 @@ export const AdminConsole: React.FC = () => {
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <input type="text" placeholder="Search users by ID, name, email..." className="border rounded-md px-3 py-2 w-64" />
           </div>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Score</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">John Doe</div>
-                  <div className="text-sm text-gray-500">john@example.com</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">OWNER</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    ACTIVE
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">4.8 / 5.0</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button className="text-red-600 hover:text-red-900 mr-3">Suspend</button>
-                  <button className="text-orange-600 hover:text-orange-900">Revoke KYC</button>
-                </td>
-              </tr>
-              {/* More rows... */}
-            </tbody>
-          </table>
+          {loading ? (
+             <div className="p-8 text-center text-gray-500">Loading users...</div>
+          ) : error ? (
+             <div className="p-8 text-center text-red-500">{error}</div>
+          ) : users.length === 0 ? (
+             <div className="p-8 text-center text-gray-500">No users found.</div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user: any) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{user.firstName ? `${user.firstName} ${user.lastName || ''}` : user.id}</div>
+                      <div className="text-sm text-gray-500">{user.email || 'No email'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role || 'UNKNOWN'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                        {user.status || 'ACTIVE'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {user.status !== 'SUSPENDED' && (
+                        <button onClick={() => handleSuspend(user.id)} className="text-red-600 hover:text-red-900 mr-3">Suspend</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
       {activeTab === 'disputes' && (
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold">Dispute #DSP-8992 (Damage Claim)</h3>
-                <p className="text-sm text-gray-600 mt-1">Booking: BK-10294 | Against: Renter (Rahul S.)</p>
-                <p className="text-sm font-medium text-gray-900 mt-2">Claim: ₹5,000 for broken chair</p>
+          {loading ? (
+             <div className="p-8 text-center bg-white rounded-lg shadow text-gray-500">Loading disputes...</div>
+          ) : error ? (
+             <div className="p-8 text-center bg-white rounded-lg shadow text-red-500">{error}</div>
+          ) : disputes.length === 0 ? (
+             <div className="p-8 text-center bg-white rounded-lg shadow text-gray-500">No open disputes.</div>
+          ) : (
+            disputes.map((dispute: any) => (
+              <div key={dispute.id} className="bg-white p-4 rounded-lg shadow border border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold">Dispute #{dispute.id} ({dispute.type})</h3>
+                    <p className="text-sm text-gray-600 mt-1">Booking: {dispute.bookingRef}</p>
+                    <p className="text-sm font-medium text-gray-900 mt-2">Claim: {dispute.description}</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                    {dispute.status}
+                  </span>
+                </div>
+                <div className="mt-4 flex space-x-3">
+                  <button onClick={() => handleResolveDispute(dispute.id, 'REFUND_RENTER')} className="bg-green-600 text-white px-3 py-1.5 text-sm rounded hover:bg-green-700">Approve Refund</button>
+                  <button onClick={() => handleResolveDispute(dispute.id, 'DISMISSED')} className="bg-red-600 text-white px-3 py-1.5 text-sm rounded hover:bg-red-700">Dismiss</button>
+                </div>
               </div>
-              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                OPEN (48h left)
-              </span>
-            </div>
-            <div className="mt-4 flex space-x-3">
-              <button className="bg-green-600 text-white px-3 py-1.5 text-sm rounded hover:bg-green-700">Approve Claim</button>
-              <button className="bg-red-600 text-white px-3 py-1.5 text-sm rounded hover:bg-red-700">Reject Claim</button>
-              <button className="bg-gray-100 text-gray-700 px-3 py-1.5 text-sm rounded hover:bg-gray-200">View Evidence</button>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       )}
 
       {activeTab === 'platform' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="bg-white p-6 rounded-lg shadow border border-gray-100 text-center">
-            <h3 className="text-sm font-medium text-gray-500 uppercase">Active Users</h3>
-            <p className="text-4xl font-bold text-gray-900 mt-2">2,405</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-100 text-center">
-            <h3 className="text-sm font-medium text-gray-500 uppercase">Total Bookings (MTD)</h3>
-            <p className="text-4xl font-bold text-gray-900 mt-2">482</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-100 text-center">
-            <h3 className="text-sm font-medium text-gray-500 uppercase">Open Disputes</h3>
-            <p className="text-4xl font-bold text-red-600 mt-2">14</p>
+            <h3 className="text-sm font-medium text-gray-500 uppercase">Analytics Endpoints pending</h3>
+            <p className="text-lg text-gray-900 mt-2">Waiting for backend integration...</p>
           </div>
         </div>
       )}

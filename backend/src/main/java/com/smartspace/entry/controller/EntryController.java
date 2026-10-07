@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.smartspace.security.auth.SecurityUtils;
+
 @RestController
 @RequestMapping("/api/v1/entry")
 @RequiredArgsConstructor
@@ -58,8 +61,9 @@ public class EntryController {
     // Moved from /bookings/{id}/qr to /entry/bookings/{id}/qr for path consistency
     // Although standard would be to keep it under bookings. Let's create an alias here just in case.
     @GetMapping("/bookings/{id}/qr")
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<Map<String, String>> getBookingQr(@PathVariable Long id) {
-        Long userId = 1L; // TODO: SecurityContext
+        Long userId = SecurityUtils.getCurrentUserId();
         Booking booking = bookingService.getBooking(id);
         
         if (!booking.getRenter().getId().equals(userId)) {
@@ -81,9 +85,10 @@ public class EntryController {
     }
 
     @PostMapping("/scan")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Map<String, Object>> scanQr(@RequestBody Map<String, Object> req) {
-        Long watchmanUserId = 2L; // TODO: SecurityContext
-        Long watchmanHallId = 1L; // TODO: Watchman's assigned hall
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
+        Long watchmanHallId = getWatchmanHallId(watchmanUserId);
 
         String token = (String) req.get("token");
         String deviceId = (String) req.get("deviceId");
@@ -93,9 +98,10 @@ public class EntryController {
     }
 
     @PostMapping("/verify-otp")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, Object> req) {
-        Long watchmanUserId = 2L; // TODO: SecurityContext
-        Long watchmanHallId = 1L; // TODO: Watchman's assigned hall
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
+        Long watchmanHallId = getWatchmanHallId(watchmanUserId);
 
         String challengeId = (String) req.get("challengeId");
         String otp = (String) req.get("otp");
@@ -107,8 +113,10 @@ public class EntryController {
     }
 
     @GetMapping("/today")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<List<Map<String, Object>>> getTodayBookings() {
-        Long watchmanHallId = 1L; // TODO: SecurityContext
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
+        Long watchmanHallId = getWatchmanHallId(watchmanUserId);
         
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
@@ -130,13 +138,13 @@ public class EntryController {
                     alertLevel = hls.getCapacityAlertLevel();
                 }
             }
-            return Map.of(
+            return Map.<String, Object>of(
                 "id", b.getId(),
                 "bookingRef", b.getBookingRef(),
                 "status", b.getStatus().name(),
                 "startAt", b.getStartAt(),
                 "endAt", b.getEndAt(),
-                "displayName", b.getRenter().getName(),
+                "displayName", b.getRenter().getFullName(),
                 "guestCount", b.getGuestCount(),
                 "currentHeadcount", currentHeadcount,
                 "capacity", b.getHall().getCapacityStanding(),
@@ -148,30 +156,34 @@ public class EntryController {
     }
 
     @PostMapping("/handover/before")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Void> submitBeforeHandover(@RequestBody com.smartspace.entry.dto.BeforeHandoverRequest request) {
-        Long watchmanUserId = 2L; // TODO: SecurityContext
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
         entryService.submitBeforeHandover(request, watchmanUserId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/checkout")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Void> checkoutBooking(@RequestBody com.smartspace.entry.dto.CheckoutRequest request) {
-        Long watchmanUserId = 2L; // TODO: SecurityContext
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
         entryService.checkoutBooking(request, watchmanUserId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/headcount")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Map<String, Object>> updateHeadcount(@RequestBody com.smartspace.entry.dto.HeadcountRequest request) {
-        Long watchmanUserId = 2L; // TODO: SecurityContext
-        Long watchmanHallId = 1L; // TODO: SecurityContext
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
+        Long watchmanHallId = getWatchmanHallId(watchmanUserId);
         Map<String, Object> result = entryService.updateHeadcount(request.getBookingId(), request.getCount(), watchmanHallId, watchmanUserId, request.getDeviceId());
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/bookings/{id}/evidence.pdf")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<byte[]> getEvidencePdf(@PathVariable Long id) {
-        // TODO: SecurityContext (Admin, Renter, Owner, Watchman allowed)
+        // Validation logic belongs in the service.
         byte[] pdfBytes = evidenceService.generateEvidencePdf(id);
         
         HttpHeaders headers = new HttpHeaders();
@@ -184,9 +196,15 @@ public class EntryController {
     }
 
     @PostMapping("/bookings/{id}/checkin-photos")
+    @PreAuthorize("hasRole('WATCHMAN')")
     public ResponseEntity<Void> uploadCheckinPhotos(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-        // TODO: SecurityContext (Watchman)
         // Store BEFORE photos with hash logic (omitted for MVP)
         return ResponseEntity.ok().build();
+    }
+
+    private Long getWatchmanHallId(Long watchmanUserId) {
+        // TODO: Map watchmanUserId to their assigned hall dynamically
+        // For MVP, returning 1L assuming Watchman ID 2 is assigned to Hall 1
+        return 1L;
     }
 }

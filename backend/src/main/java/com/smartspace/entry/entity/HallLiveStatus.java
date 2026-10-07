@@ -1,7 +1,7 @@
 package com.smartspace.entry.entity;
 
 import com.smartspace.booking.entity.Booking;
-import com.smartspace.hall.entity.Hall;
+import com.smartspace.listing.entity.Hall;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -25,14 +25,14 @@ public class HallLiveStatus {
     @JoinColumn(name = "hall_id")
     private Hall hall;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('FREE','OCCUPIED','CLEANING')")
     private String status; // FREE, OCCUPIED, CLEANING
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_booking_id")
     private Booking currentBooking;
 
-    @Column(name = "current_headcount", nullable = false)
+    @Column(name = "current_headcount", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer currentHeadcount;
 
     @Column(name = "capacity_alert_level", length = 20)

@@ -1,4 +1,4 @@
-import { ed25519 } from '@noble/curves/ed25519';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { offlineSyncService } from './OfflineSyncService';
 
 export interface QrPayload {
@@ -64,7 +64,7 @@ export class QrValidationService {
             // Convert payload string to Uint8Array for signing check
             const msgBytes = new TextEncoder().encode(payloadB64);
 
-            const isValidSig = ed25519.verify(sigBytes, msgBytes, publicKeyHex);
+            const isValidSig = ed25519.verify(sigBytes, msgBytes, publicKeyHex as any);
             if (!isValidSig) {
                 return { isValid: false, reasonCode: 'INVALID_SIGNATURE', offlineMode: true };
             }

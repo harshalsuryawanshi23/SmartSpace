@@ -37,10 +37,10 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64, columnDefinition = "CHAR(64)")
     private String tokenHash;
 
-    @Column(name = "family_id", nullable = false, length = 36)
+    @Column(name = "family_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String familyId;
 
     @Column(name = "expires_at", nullable = false)

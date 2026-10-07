@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class TrustScore {
     @Id
     @Enumerated(EnumType.STRING)
-    @Column(name = "subject_type", nullable = false)
+    @Column(name = "subject_type", nullable = false, columnDefinition = "ENUM('RESIDENT','HALL','DECORATOR')")
     private Rating.SubjectType subjectType;
 
     @Id
@@ -30,10 +30,10 @@ public class TrustScore {
     private BigDecimal score;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "badge", nullable = false)
+    @Column(name = "badge", nullable = false, columnDefinition = "ENUM('NEW','STANDARD','TRUSTED','WATCH')")
     private Badge badge;
 
-    @Column(name = "verified_stays", nullable = false)
+    @Column(name = "verified_stays", nullable = false, columnDefinition = "INT UNSIGNED")
     private Integer verifiedStays = 0;
 
     @Column(name = "components", columnDefinition = "JSON", nullable = false)

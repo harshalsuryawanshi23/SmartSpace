@@ -15,13 +15,13 @@ export const RatingForm: React.FC<RatingFormProps> = ({ bookingId, subjectId, ra
         ? { cleanliness: 5, accuracy: 5, facilities: 5, helpfulness: 5 }
         : { punctuality: 5, care: 5, conduct: 5 };
 
-    const [dimensions, setDimensions] = useState<Record<string, number>>(initialDimensions);
+    const [dimensions, setDimensions] = useState<any>(initialDimensions);
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleStarClick = (dim: string, val: number) => {
-        setDimensions(prev => ({ ...prev, [dim]: val }));
+        setDimensions((prev: any) => ({ ...prev, [dim]: val }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,8 +30,8 @@ export const RatingForm: React.FC<RatingFormProps> = ({ bookingId, subjectId, ra
         setError(null);
 
         // Average stars
-        const vals = Object.values(dimensions);
-        const avgStars = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+        const vals = Object.values(dimensions) as number[];
+        const avgStars = Math.round(vals.reduce((a: any, b: any) => a + b, 0) / vals.length);
 
         const payload = {
             stars: avgStars,

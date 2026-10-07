@@ -35,13 +35,13 @@ public class NotificationOutbox {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "channel", nullable = false)
+    @Column(name = "channel", nullable = false, columnDefinition = "ENUM('EMAIL','SMS','IN_APP','PUSH')")
     private NotificationChannel channel;
 
     @Column(name = "template_code", nullable = false, length = 60)
     private String templateCode;
 
-    @Column(name = "language", nullable = false)
+    @Column(name = "language", nullable = false, columnDefinition = "ENUM('en','hi','mr')")
     @Builder.Default
     private String language = "en";
 
@@ -52,11 +52,11 @@ public class NotificationOutbox {
     private String payload;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "ENUM('PENDING','SENT','FAILED','DEAD')")
     @Builder.Default
     private OutboxStatus status = OutboxStatus.PENDING;
 
-    @Column(name = "attempts", nullable = false)
+    @Column(name = "attempts", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     @Builder.Default
     private Integer attempts = 0;
 

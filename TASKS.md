@@ -299,7 +299,7 @@
   *Refs:* §13.5 · *Done when:* State transitions tested
 - [x] **TASK-114** Frontend: Decorator directory/profile, DecoratorMatchCard, budget/theme pickers, enquiry UI  
   *Refs:* DESIGN §7 · *Done when:* Reasons visible on every card
-- [ ] **TASK-115** Frontend: Decorator console (profile, packages, availability, enquiry inbox + quote)  
+- [x] **TASK-115** Frontend: Decorator console (profile, packages, availability, enquiry inbox + quote)  
   *Refs:* §21.3 · *Done when:* All states
 - [ ] **TASK-116** E2E-08 (without pass step)  
   *Refs:* §22.3 · *Done when:* Passes
@@ -308,7 +308,7 @@
 **Tier:** P0 · **Branch:** `feature/p0-ops`
 **Exit criteria:** Owner and admin have the visibility promised in the PRD; notifications reliable.
 
-- [x] **TASK-117** Template catalogue (en) for all P0 codes; `ReminderJob`  
+- [ ] **TASK-117** Template catalogue (en) for all P0 codes; `ReminderJob`  
   *Refs:* §17.3 · *Done when:* Reminders sent once
 - [x] **TASK-118** In-app notifications API + bell/unread UI  
   *Refs:* §20.2 · *Done when:* Mark read works
@@ -322,24 +322,24 @@
   *Refs:* §16.1 · *Done when:* All actions audited
 - [x] **TASK-123** Frontend: Owner dashboard & bookings, Admin console pages  
   *Refs:* DESIGN §10 · *Done when:* Responsive; all states
-- [x] **TASK-124** E2E-06, E2E-07, E2E-10, E2E-11  
+- [ ] **TASK-124** E2E-06, E2E-07, E2E-10, E2E-11  
   *Refs:* §22.3 · *Done when:* All pass
 
 ## Phase 14 — P1 Hardening (verify the document novelties)
 **Tier:** P1 · **Branch:** `feature/p1-hardening`
 **Exit criteria:** NV-1…NV-6 demonstrably work and are documented with evidence.
 
-- [x] **TASK-125** NV-1 acceptance run: QR-only vs QR+OTP attack scenarios recorded  
+- [ ] **TASK-125** NV-1 acceptance run: QR-only vs QR+OTP attack scenarios recorded  
   *Refs:* §25.1 · *Done when:* Report table committed to docs/
-- [x] **TASK-126** NV-4 micro-slot checks: several bookings per day per hall with buffers  
+- [ ] **TASK-126** NV-4 micro-slot checks: several bookings per day per hall with buffers  
   *Refs:* §6.3 · *Done when:* Calendar view verified
-- [x] **TASK-127** Security review pass (authz matrix, IDOR, rate limits, headers, logs, uploads)  
+- [ ] **TASK-127** Security review pass (authz matrix, IDOR, rate limits, headers, logs, uploads)  
   *Refs:* §7, §22.2 · *Done when:* Checklist signed off in docs/MEMORY.md
-- [x] **TASK-128** Performance smoke: search p95, scan p95  
+- [ ] **TASK-128** Performance smoke: search p95, scan p95  
   *Refs:* PRD NFR-04 · *Done when:* Meets targets on seed data
-- [x] **TASK-129** Accessibility pass (axe) on core pages  
+- [ ] **TASK-129** Accessibility pass (axe) on core pages  
   *Refs:* DESIGN §11 · *Done when:* Zero high-severity issues
-- [x] **TASK-130** Seed data + `POST /dev/reset-demo` + clock fast-forward (dev only)  
+- [ ] **TASK-130** Seed data + `POST /dev/reset-demo` + clock fast-forward (dev only)  
   *Refs:* §24.1 · *Done when:* Demo repeatable in one command
 
 ## Phase 15 — N-01 Offline-Resilient Watchman PWA

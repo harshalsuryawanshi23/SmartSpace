@@ -15,7 +15,7 @@ public interface DecoratorEnquiryRepository extends JpaRepository<DecoratorEnqui
     List<DecoratorEnquiry> findByBookingId(Long bookingId);
     List<DecoratorEnquiry> findByDecoratorIdOrderByCreatedAtDesc(Long decoratorId);
     
-    @Query("SELECT e FROM DecoratorEnquiry e WHERE e.decorator.id = :decoratorId AND e.status IN ('ACCEPTED', 'CONFIRMED_BY_RENTER') AND e.booking.slotStart < :end AND e.booking.slotEnd > :start")
+    @Query("SELECT e FROM DecoratorEnquiry e WHERE e.decorator.id = :decoratorId AND e.status IN ('ACCEPTED', 'CONFIRMED_BY_RENTER') AND e.booking.startAt < :end AND e.booking.endAt > :start")
     List<DecoratorEnquiry> findOverlappingEnquiries(@Param("decoratorId") Long decoratorId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     List<DecoratorEnquiry> findByStatusAndCreatedAtBefore(DecoratorEnquiry.EnquiryStatus status, LocalDateTime dateTime);

@@ -1,9 +1,10 @@
 package com.smartspace.booking.service;
 
-import com.smartspace.booking.dto.SlotRequest;
 import com.smartspace.booking.entity.Booking;
 import com.smartspace.booking.repository.BookingRepository;
-import com.smartspace.common.exception.SlotUnavailableException;
+import com.smartspace.booking.exception.SlotUnavailableException;
+import com.smartspace.listing.entity.Hall;
+import com.smartspace.listing.repository.HallRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,58 +31,87 @@ class MicroSlotIntegrationTest {
     @Autowired
     private BookingRepository bookingRepository;
 
-    private Long testHallId = 100L;
-    private Long testUserId = 200L;
+    @Autowired
+    private HallRepository hallRepository;
+
+    private Hall testHall;
     private Instant todayNoon;
 
     @BeforeEach
     void setUp() {
-        // Setup a fixed reference time (e.g., today at 12:00 PM IST)
         todayNoon = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"))
                 .withHour(12).withMinute(0).withSecond(0).withNano(0)
                 .toInstant();
+                
+        testHall = Hall.builder()
+                .name("Test Hall")
+                .bufferAfterMinutes(30)
+                .build();
+        hallRepository.save(testHall);
     }
 
     @Test
     void testMultipleConsecutiveBookingsWithBuffer() {
         // First booking: 12:00 PM to 2:00 PM
-        SlotRequest request1 = new SlotRequest();
-        request1.setHallId(testHallId);
-        request1.setStartAt(todayNoon);
-        request1.setEndAt(todayNoon.plusSeconds(7200)); // 2 hours
-        request1.setIdempotencyKey(UUID.randomUUID().toString());
-        request1.setUserId(testUserId);
+        Booking booking1 = new Booking();
+        booking1.setBookingRef(UUID.randomUUID().toString());
+        booking1.setStartAt(todayNoon);
+        booking1.setEndAt(todayNoon.plusSeconds(7200)); // 2 hours
+        booking1.setHall(testHall);
+        booking1.setEventType(com.smartspace.booking.entity.BookingEventType.BIRTHDAY);
+        booking1.setEventTitle("Test Event");
+        booking1.setGuestCount(50);
+        booking1.setPriceBase(java.math.BigDecimal.valueOf(1000));
+        booking1.setPriceTotal(java.math.BigDecimal.valueOf(1000));
+        booking1.setCancellationPolicy(com.smartspace.booking.entity.CancellationPolicy.FLEXIBLE);
+        // We also need to set a Renter user, but for SlotService.reserve it may only need the ID/hall.
+        // Let's create and set a dummy renter if needed. 
+        // For reserve() we just need booking id in some cases, but bookingRepository.save(booking) needs all nullable=false fields.
+        com.smartspace.user.entity.User renter = new com.smartspace.user.entity.User();
+        org.springframework.test.util.ReflectionTestUtils.setField(renter, "id", 200L);
+        booking1.setRenter(renter);
+        bookingRepository.save(booking1);
+        
+        slotService.reserve(testHall, booking1.getStartAt(), booking1.getEndAt(), booking1);
 
-        Booking booking1 = slotService.reserve(request1);
-        assertNotNull(booking1.getId());
-
-        // Assuming a standard 30-minute trailing buffer is enforced by SlotService,
-        // a second booking starting at 2:00 PM should FAIL due to the buffer overlap.
-        SlotRequest request2 = new SlotRequest();
-        request2.setHallId(testHallId);
-        request2.setStartAt(todayNoon.plusSeconds(7200)); // 2:00 PM
-        request2.setEndAt(todayNoon.plusSeconds(14400)); // 4:00 PM
-        request2.setIdempotencyKey(UUID.randomUUID().toString());
-        request2.setUserId(testUserId);
+        // A second booking starting at 2:00 PM should FAIL due to the buffer overlap.
+        Booking booking2 = new Booking();
+        booking2.setBookingRef(UUID.randomUUID().toString());
+        booking2.setStartAt(todayNoon.plusSeconds(7200)); // 2:00 PM
+        booking2.setEndAt(todayNoon.plusSeconds(14400)); // 4:00 PM
+        booking2.setHall(testHall);
+        booking2.setEventType(com.smartspace.booking.entity.BookingEventType.BIRTHDAY);
+        booking2.setEventTitle("Test Event");
+        booking2.setGuestCount(50);
+        booking2.setPriceBase(java.math.BigDecimal.valueOf(1000));
+        booking2.setPriceTotal(java.math.BigDecimal.valueOf(1000));
+        booking2.setCancellationPolicy(com.smartspace.booking.entity.CancellationPolicy.FLEXIBLE);
+        booking2.setRenter(renter);
+        bookingRepository.save(booking2);
 
         assertThrows(SlotUnavailableException.class, () -> {
-            slotService.reserve(request2);
+            slotService.reserve(testHall, booking2.getStartAt(), booking2.getEndAt(), booking2);
         });
 
         // But a booking starting at 2:30 PM should SUCCEED.
-        SlotRequest request3 = new SlotRequest();
-        request3.setHallId(testHallId);
-        request3.setStartAt(todayNoon.plusSeconds(9000)); // 2:30 PM (2 hrs + 30 mins buffer = 9000s)
-        request3.setEndAt(todayNoon.plusSeconds(16200)); // 4:30 PM
-        request3.setIdempotencyKey(UUID.randomUUID().toString());
-        request3.setUserId(testUserId);
+        Booking booking3 = new Booking();
+        booking3.setBookingRef(UUID.randomUUID().toString());
+        booking3.setStartAt(todayNoon.plusSeconds(9000)); // 2:30 PM (2 hrs + 30 mins buffer = 9000s)
+        booking3.setEndAt(todayNoon.plusSeconds(16200)); // 4:30 PM
+        booking3.setHall(testHall);
+        booking3.setEventType(com.smartspace.booking.entity.BookingEventType.BIRTHDAY);
+        booking3.setEventTitle("Test Event");
+        booking3.setGuestCount(50);
+        booking3.setPriceBase(java.math.BigDecimal.valueOf(1000));
+        booking3.setPriceTotal(java.math.BigDecimal.valueOf(1000));
+        booking3.setCancellationPolicy(com.smartspace.booking.entity.CancellationPolicy.FLEXIBLE);
+        booking3.setRenter(renter);
+        bookingRepository.save(booking3);
 
-        Booking booking3 = slotService.reserve(request3);
-        assertNotNull(booking3.getId());
+        slotService.reserve(testHall, booking3.getStartAt(), booking3.getEndAt(), booking3);
 
-        // Verify that 2 bookings exist in the repository for this hall
         List<Booking> bookings = bookingRepository.findAll();
-        long count = bookings.stream().filter(b -> b.getHallId().equals(testHallId)).count();
-        assertEquals(2, count, "There should be exactly 2 non-overlapping bookings (buffer accounted for)");
+        long count = bookings.stream().filter(b -> b.getHall().getId().equals(testHall.getId())).count();
+        assertEquals(3, count, "There should be exactly 3 bookings (1 failed reservation is still in DB as we saved it before reserve)");
     }
 }

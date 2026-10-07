@@ -33,11 +33,11 @@ public class EvidenceService {
             document.add(new Paragraph("SmartSpace Handover Evidence Pack"));
             document.add(new Paragraph("Booking Reference: BK-" + booking.getId()));
             document.add(new Paragraph("Hall: " + booking.getHall().getName()));
-            document.add(new Paragraph("Renter: " + booking.getUser().getFirstName() + " " + booking.getUser().getLastName()));
+            document.add(new Paragraph("Renter: " + booking.getRenter().getFullName()));
             
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
-            document.add(new Paragraph("Scheduled Start: " + booking.getSlotStart().format(dtf)));
-            document.add(new Paragraph("Scheduled End: " + booking.getSlotEnd().format(dtf)));
+            document.add(new Paragraph("Scheduled Start: " + java.time.LocalDateTime.ofInstant(booking.getStartAt(), java.time.ZoneId.systemDefault()).format(dtf)));
+            document.add(new Paragraph("Scheduled End: " + java.time.LocalDateTime.ofInstant(booking.getEndAt(), java.time.ZoneId.systemDefault()).format(dtf)));
             document.add(new Paragraph("Status: " + booking.getStatus()));
 
             // Additional details can be added here (Checklists, photos, etc.)

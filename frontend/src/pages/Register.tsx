@@ -20,11 +20,11 @@ export const Register = () => {
         setLoading(true);
         try {
             const res = await apiClient.post('/auth/register', { 
-                firstName, 
-                lastName, 
+                fullName: `${firstName} ${lastName}`.trim(),
                 email: email || null, 
                 phone: phone || null, 
-                password 
+                password,
+                role: 'RESIDENT'
             });
             // Registration returns { publicId, message }
             // Navigate to OTP verification

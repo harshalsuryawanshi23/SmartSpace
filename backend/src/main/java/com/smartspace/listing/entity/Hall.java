@@ -22,7 +22,7 @@ public class Hall {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, updatable = false, length = 36)
+    @Column(name = "public_id", nullable = false, updatable = false, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @Column(name = "society_id", nullable = false)
@@ -52,17 +52,17 @@ public class Hall {
     @Column(nullable = false, precision = 9, scale = 6)
     private BigDecimal lng;
 
-    @Column(name = "capacity_seated", nullable = false)
+    @Column(name = "capacity_seated", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer capacitySeated;
 
-    @Column(name = "capacity_standing", nullable = false)
+    @Column(name = "capacity_standing", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer capacityStanding;
 
-    @Column(name = "area_sqft")
+    @Column(name = "area_sqft", columnDefinition = "SMALLINT UNSIGNED")
     private Integer areaSqft;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "layout_type", nullable = false)
+    @Column(name = "layout_type", nullable = false, columnDefinition = "ENUM('OPEN_HALL','STAGE_HALL','COURTYARD','TERRACE','ROOM','MULTI_ROOM')")
     private LayoutType layoutType;
 
     @Column(name = "ceiling_height_ft", precision = 4, scale = 1)
@@ -89,7 +89,7 @@ public class Hall {
     @Column(name = "has_washroom", nullable = false)
     private Boolean hasWashroom;
 
-    @Column(name = "power_points")
+    @Column(name = "power_points", columnDefinition = "SMALLINT UNSIGNED")
     private Integer powerPoints;
 
     @Column(name = "rules_text", columnDefinition = "TEXT")
@@ -98,13 +98,13 @@ public class Hall {
     @Column(name = "base_price_per_hour", nullable = false, precision = 10, scale = 2)
     private BigDecimal basePricePerHour;
 
-    @Column(name = "min_slot_minutes", nullable = false)
+    @Column(name = "min_slot_minutes", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer minSlotMinutes;
 
-    @Column(name = "max_slot_minutes", nullable = false)
+    @Column(name = "max_slot_minutes", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer maxSlotMinutes;
 
-    @Column(name = "buffer_after_minutes", nullable = false)
+    @Column(name = "buffer_after_minutes", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer bufferAfterMinutes;
 
     @Column(name = "quiet_hours_start")
@@ -116,24 +116,24 @@ public class Hall {
     @Column(name = "latest_end_time")
     private LocalTime latestEndTime;
 
-    @Column(name = "advance_days_public", nullable = false)
+    @Column(name = "advance_days_public", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer advanceDaysPublic;
 
-    @Column(name = "advance_days_member", nullable = false)
+    @Column(name = "advance_days_member", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer advanceDaysMember;
 
     @Column(name = "member_discount_percent", nullable = false, precision = 4, scale = 1)
     private BigDecimal memberDiscountPercent;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cancellation_policy", nullable = false)
+    @Column(name = "cancellation_policy", nullable = false, columnDefinition = "ENUM('FLEXIBLE','MODERATE','STRICT')")
     private CancellationPolicy cancellationPolicy;
 
     @Column(name = "overstay_fee_per_15min", nullable = false, precision = 10, scale = 2)
     private BigDecimal overstayFeePer15Min;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('DRAFT','PENDING_APPROVAL','ACTIVE','SUSPENDED','REJECTED')")
     private HallStatus status;
 
     @Column(name = "rejection_reason")
@@ -142,7 +142,7 @@ public class Hall {
     @Column(name = "rating_avg", nullable = false, precision = 3, scale = 2)
     private BigDecimal ratingAvg;
 
-    @Column(name = "rating_count", nullable = false)
+    @Column(name = "rating_count", nullable = false, columnDefinition = "INT UNSIGNED")
     private Integer ratingCount;
 
     @Column(name = "trust_score", precision = 5, scale = 2)

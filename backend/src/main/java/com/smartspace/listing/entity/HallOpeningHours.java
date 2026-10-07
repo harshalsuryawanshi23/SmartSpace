@@ -20,7 +20,7 @@ public class HallOpeningHours {
     @Column(name = "hall_id", nullable = false)
     private Long hallId;
 
-    @Column(name = "day_of_week", nullable = false)
+    @Column(name = "day_of_week", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer dayOfWeek;
 
     @Column(name = "open_time", nullable = false)

@@ -1,6 +1,6 @@
 package com.smartspace.dispute.dto;
 
-import com.smartspace.dispute.entity.DisputeStatus;
+import com.smartspace.dispute.entity.Dispute;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class DisputeResolveRequest {
     @NotNull
-    private DisputeStatus status;
+    private Dispute.Status status;
 
     @NotBlank
     private String resolutionNote;

@@ -48,7 +48,7 @@ public class KycExpiryJob {
                         .userId(verification.getUser().getId())
                         .channel(NotificationChannel.EMAIL) // Default to email for important warnings
                         .templateCode("KYC_EXPIRING")
-                        .language(verification.getUser().getPreferredLanguage().name().toLowerCase())
+                        .language(verification.getUser().getPreferredLanguage() != null ? verification.getUser().getPreferredLanguage().toLowerCase() : "en")
                         .destination(verification.getUser().getEmail())
                         .payload("{\"expiresAt\": \"" + verification.getExpiresAt().toString() + "\"}")
                         .nextAttemptAt(Instant.now(clock))

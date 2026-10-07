@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 @Embeddable
@@ -15,7 +15,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class BookingCellId implements Serializable {
     private Long hallId;
-    private LocalDateTime cellStart;
+    private Instant cellStart;
 
     @Override
     public boolean equals(Object o) {

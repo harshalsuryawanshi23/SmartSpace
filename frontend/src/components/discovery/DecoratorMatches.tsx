@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export default function DecoratorMatches({ hallId, slotStart, slotEnd, guestCount }: { hallId: string, slotStart?: string, slotEnd?: string, guestCount?: number }) {
   const [matches, setMatches] = useState<any[]>([]);

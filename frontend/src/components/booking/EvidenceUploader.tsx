@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
 interface EvidenceUploaderProps {
   bookingId: number;
 }
@@ -19,7 +18,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ bookingId })
     // We mock this by just calling the checkin-photos endpoint.
     
     try {
-      const res = await fetch(\/api/v1/bookings/\/checkin-photos\, {
+      const res = await fetch(`/api/v1/bookings/${bookingId}/checkin-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: file.name, hash: 'mock-hash' }),
@@ -36,7 +35,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ bookingId })
   };
 
   const handleDownloadPdf = () => {
-    window.open(\/api/v1/bookings/\/evidence.pdf\, '_blank');
+    window.open(`/api/v1/bookings/${bookingId}/evidence.pdf`, '_blank');
   };
 
   return (

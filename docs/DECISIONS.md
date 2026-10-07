@@ -11,3 +11,9 @@
 **Context**: We need to easily test time-sensitive logic (e.g., booking slot expiration, OTP expiry).
 **Decision**: Ban the use of `Instant.now()`, `LocalDateTime.now()`, etc. All time operations must use a injected `java.time.Clock` bean.
 **Consequences**: Requires constructor injection of `Clock` in all time-sensitive services. Enforced via ArchUnit tests.
+
+## ADR-003: Production Deployment Scripts
+**Status**: Accepted
+**Context**: We need a reliable and repeatable way to deploy to production and backup the MySQL data.
+**Decision**: Use `docker-compose.prod.yml` to define the production setup using the built images. Implement shell scripts (`backup.sh` and `restore.sh`) running via `docker exec` to dump and restore the database without needing the mysql client on the host.
+**Consequences**: Easier portability and automated nightly backups using cron jobs. No host dependencies aside from Docker.

@@ -60,4 +60,9 @@ public class SlotService {
             throw new SlotUnavailableException();
         }
     }
+    public boolean isSlotAvailable(Long hallId, Instant start, Instant end) {
+        String sql = "SELECT COUNT(*) FROM booking_cells WHERE hall_id = ? AND cell_start >= ? AND cell_start < ?";
+        Integer count = jdbc.queryForObject(sql, Integer.class, hallId, Timestamp.from(start), Timestamp.from(end));
+        return count != null && count == 0;
+    }
 }

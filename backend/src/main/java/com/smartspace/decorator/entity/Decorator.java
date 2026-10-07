@@ -1,6 +1,6 @@
 package com.smartspace.decorator.entity;
 
-import com.smartspace.identity.entity.User;
+import com.smartspace.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

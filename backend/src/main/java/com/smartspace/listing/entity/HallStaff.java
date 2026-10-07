@@ -19,7 +19,7 @@ public class HallStaff {
     private HallStaffId id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "staff_role", nullable = false)
+    @Column(name = "staff_role", nullable = false, columnDefinition = "ENUM('WATCHMAN','MANAGER')")
     private StaffRole staffRole;
 
     @Column(nullable = false)

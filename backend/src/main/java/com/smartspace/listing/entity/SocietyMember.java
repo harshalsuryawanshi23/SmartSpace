@@ -12,16 +12,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@IdClass(SocietyMemberId.class)
 public class SocietyMember {
 
-    @EmbeddedId
-    private SocietyMemberId id;
+    @Id
+    @Column(name = "society_id", columnDefinition = "BIGINT UNSIGNED")
+    private Long societyId;
+
+    @Id
+    @Column(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
+    private Long userId;
 
     @Column(name = "flat_label", length = 30)
     private String flatLabel;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('PENDING','APPROVED','REMOVED')")
     private SocietyMemberStatus status;
 
     @Column(name = "approved_at")

@@ -38,7 +38,12 @@ public class AdminService {
         User target = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
                 
-        target.setKycStatus(com.smartspace.user.entity.KycStatus.REJECTED); // Or NONE
+        // TODO: Call KycService to revoke KYC. target.setKycStatus is invalid because KycStatus is in Kyc entity.
         userRepository.save(target);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

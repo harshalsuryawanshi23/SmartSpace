@@ -4,6 +4,6 @@ import com.smartspace.common.exception.DomainException;
 
 public class SlotUnavailableException extends DomainException {
     public SlotUnavailableException() {
-        super("SLOT_UNAVAILABLE", "One or more requested time slots are already booked or blocked.");
+        super(com.smartspace.common.exception.ErrorCode.SLOT_UNAVAILABLE, "One or more requested time slots are already booked or blocked.");
     }
 }

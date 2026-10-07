@@ -108,6 +108,7 @@ smart-space/
 ├── frontend/   React app + watchman PWA (feature-first folders)
 ├── e2e/        Playwright journeys
 ├── infra/      proxy config, scripts (keys, backup/restore), MySQL init
+├── docker-compose.prod.yml  Production environment deployment configuration
 ├── docs/       DECISIONS.md, MEMORY.md, exported OpenAPI
 └── *.md        the specification set listed above
 ```
@@ -122,7 +123,7 @@ smart-space/
 
 ## 8. Deployment (in-house)
 
-Docker Compose on a Linux host behind Caddy/Nginx with TLS; nightly `mysqldump` + uploads backup (`infra/scripts/backup.sh`); Flyway runs migrations on start. See `ARCHITECTURE.md` §10 and `IMPLEMENTATION.md` §23.
+Docker Compose on a Linux host behind Caddy/Nginx with TLS using `docker-compose.prod.yml`. Nightly `mysqldump` backups are enabled via `infra/scripts/backup.sh`, with restoration capabilities in `infra/scripts/restore.sh`. Flyway runs migrations on start. See `ARCHITECTURE.md` §10 and `IMPLEMENTATION.md` §23.
 
 ## 9. Working with an AI coding agent
 

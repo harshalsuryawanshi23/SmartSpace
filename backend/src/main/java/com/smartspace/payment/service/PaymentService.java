@@ -37,8 +37,8 @@ public class PaymentService {
             throw new IllegalStateException("Booking is not in PENDING_PAYMENT state");
         }
 
-        if (amount.compareTo(booking.getTotalPrice()) != 0) {
-            throw new IllegalArgumentException("Amount mismatch. Expected: " + booking.getTotalPrice());
+        if (amount.compareTo(booking.getPriceTotal()) != 0) {
+            throw new IllegalArgumentException("Amount mismatch. Expected: " + booking.getPriceTotal());
         }
 
         // Idempotency check: if a created payment already exists for this booking, return it
@@ -96,7 +96,7 @@ public class PaymentService {
             // Issue QR Credential
             String qrToken = qrTokenService.issueHolderCredential(booking);
             log.info("Issued QR token for booking {}: {}", booking.getBookingRef(), qrToken);
-        } else if (booking.getStatus() == BookingStatus.CANCELLED_AUTO) {
+        } else if (booking.getStatus() == BookingStatus.EXPIRED) {
             // Late payment race condition! 
             // The booking lock expired and it auto-cancelled, but the payment succeeded just now.
             log.warn("Late payment race condition for booking {}. Issuing refund.", booking.getBookingRef());

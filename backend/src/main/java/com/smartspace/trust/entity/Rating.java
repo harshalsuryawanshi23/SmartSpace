@@ -29,17 +29,17 @@ public class Rating {
     private Long raterUserId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rater_side", nullable = false)
+    @Column(name = "rater_side", nullable = false, columnDefinition = "ENUM('RENTER','HALL_SIDE')")
     private RaterSide raterSide;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "subject_type", nullable = false)
+    @Column(name = "subject_type", nullable = false, columnDefinition = "ENUM('HALL','RENTER','DECORATOR')")
     private SubjectType subjectType;
 
     @Column(name = "subject_id", nullable = false)
     private Long subjectId;
 
-    @Column(name = "stars", nullable = false)
+    @Column(name = "stars", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer stars;
 
     @Column(name = "dimensions", columnDefinition = "JSON")

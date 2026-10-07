@@ -38,7 +38,7 @@ public class AlternativesService {
             Instant laterStart = requestedStart.plus(2, ChronoUnit.HOURS);
             Instant laterEnd = laterStart.plus(durationMinutes, ChronoUnit.MINUTES);
             
-            if (slotService.getAvailableSlots(hallId, laterStart, laterEnd).size() >= (durationMinutes / 30)) {
+            if (slotService.isSlotAvailable(hallId, laterStart, laterEnd)) {
                 alternatives.add(Map.of(
                         "type", "DIFFERENT_TIME",
                         "hallId", hallId,

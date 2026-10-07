@@ -20,14 +20,14 @@ public class EntryCredential {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 32, unique = true)
+    @Column(nullable = false, length = 32, unique = true, columnDefinition = "CHAR(32)")
     private String jti;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('HOLDER', 'DECORATOR')")
     private String kind; // 'HOLDER' or 'DECORATOR'
 
     @Column(name = "decorator_enquiry_id")

@@ -18,4 +18,5 @@ public interface NotificationOutboxRepository extends JpaRepository<Notification
     List<NotificationOutbox> findPendingNotifications(OutboxStatus status, Instant now, Pageable pageable);
 
     Optional<NotificationOutbox> findByDedupeKeyAndChannel(String dedupeKey, com.smartspace.notification.entity.NotificationChannel channel);
+    boolean existsByDedupeKey(String dedupeKey);
 }

@@ -21,7 +21,7 @@ public class Dispute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, length = 36)
+    @Column(name = "public_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,11 +32,11 @@ public class Dispute {
     private Long raisedBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "against_side", nullable = false)
+    @Column(name = "against_side", nullable = false, columnDefinition = "ENUM('RENTER','HALL_SIDE')")
     private AgainstSide againstSide;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false)
+    @Column(name = "category", nullable = false, columnDefinition = "ENUM('DAMAGE','OVERSTAY','NO_ACCESS','MISREPRESENTED_LISTING','CLEANLINESS','OTHER')")
     private Category category;
 
     @Column(name = "description", nullable = false, length = 2000)
@@ -46,7 +46,7 @@ public class Dispute {
     private BigDecimal claimedAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "ENUM('OPEN','UNDER_REVIEW','RESOLVED_FOR_RAISER','RESOLVED_AGAINST_RAISER','PARTIAL','WITHDRAWN')")
     private Status status = Status.OPEN;
 
     @Column(name = "resolution_note", length = 2000)

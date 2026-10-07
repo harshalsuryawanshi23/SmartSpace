@@ -62,7 +62,7 @@ public class RatingService {
 
         // Rule 4: Rater is the booking's renter or the hall owner/staff. 
         // For simplicity in this layer, we assume controller checks if user owns booking/hall, but we enforce sides.
-        if (raterSide == Rating.RaterSide.RENTER && !booking.getRenterUserId().equals(userId)) {
+        if (raterSide == Rating.RaterSide.RENTER && !booking.getRenter().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the renter can rate from RENTER side");
         }
         // If HALL_SIDE, we would verify the user is owner/staff of the hall. (Assume controller does it).

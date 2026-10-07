@@ -31,11 +31,11 @@ public class OtpChallenge {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, unique = true, length = 36)
+    @Column(name = "public_id", nullable = false, unique = true, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "purpose", nullable = false)
+    @Column(name = "purpose", nullable = false, columnDefinition = "ENUM('EMAIL_VERIFY','PHONE_VERIFY','PASSWORD_RESET','GATE_ENTRY','KYC')")
     private OtpPurpose purpose;
 
     @Column(name = "user_id")
@@ -47,14 +47,14 @@ public class OtpChallenge {
     @Column(name = "target", nullable = false, length = 190)
     private String target;
 
-    @Column(name = "code_hash", nullable = false, length = 64)
+    @Column(name = "code_hash", nullable = false, length = 64, columnDefinition = "CHAR(64)")
     private String codeHash;
 
-    @Column(name = "attempts", nullable = false)
+    @Column(name = "attempts", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     @Builder.Default
     private Integer attempts = 0;
 
-    @Column(name = "max_attempts", nullable = false)
+    @Column(name = "max_attempts", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     @Builder.Default
     private Integer maxAttempts = 3;
 

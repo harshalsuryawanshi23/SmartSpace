@@ -14,4 +14,6 @@ public interface DecoratorBlackoutRepository extends JpaRepository<DecoratorBlac
     
     @Query("SELECT b FROM DecoratorBlackout b WHERE b.decorator.id = :decoratorId AND b.endTime > :start AND b.startTime < :end")
     List<DecoratorBlackout> findOverlappingBlackouts(@Param("decoratorId") Long decoratorId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    List<DecoratorBlackout> findByDecoratorId(Long decoratorId);
 }

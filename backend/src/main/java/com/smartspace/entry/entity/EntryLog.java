@@ -1,7 +1,7 @@
 package com.smartspace.entry.entity;
 
 import com.smartspace.booking.entity.Booking;
-import com.smartspace.hall.entity.Hall;
+import com.smartspace.listing.entity.Hall;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,7 +21,7 @@ public class EntryLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "client_event_id", length = 36, unique = true)
+    @Column(name = "client_event_id", length = 36, unique = true, columnDefinition = "CHAR(36)")
     private String clientEventId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,22 +39,22 @@ public class EntryLog {
     @Column(name = "watchman_user_id")
     private Long watchmanUserId;
 
-    @Column(name = "event_type", nullable = false)
+    @Column(name = "event_type", nullable = false, columnDefinition = "ENUM('SCAN','OTP_SENT','OTP_VERIFIED','CHECK_IN','REENTRY','CHECK_OUT','HEADCOUNT','CAPACITY_ALERT','WRAP_UP_ALERT','OVERSTAY_ALERT','DECORATOR_IN','DECORATOR_OUT','SYNC_CONFLICT')")
     private String eventType;
 
-    @Column
+    @Column(columnDefinition = "ENUM('GO','HOLD','STOP')")
     private String verdict; // GO, HOLD, STOP
 
     @Column(name = "reason_code", length = 40)
     private String reasonCode;
 
-    @Column(name = "identity_method")
+    @Column(name = "identity_method", columnDefinition = "ENUM('OTP','MANUAL_OFFLINE','NONE')")
     private String identityMethod; // OTP, MANUAL_OFFLINE, NONE
 
     @Column(nullable = false)
     private Boolean offline;
 
-    @Column
+    @Column(columnDefinition = "SMALLINT UNSIGNED")
     private Integer headcount;
 
     @Column(name = "device_id", length = 64)

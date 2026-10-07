@@ -4,7 +4,7 @@ import com.smartspace.booking.entity.Booking;
 import com.smartspace.booking.entity.BookingStatus;
 import com.smartspace.booking.repository.BookingRepository;
 import com.smartspace.notification.entity.NotificationChannel;
-import com.smartspace.notification.service.NotificationDispatcher;
+import com.smartspace.notification.repository.NotificationOutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class ReminderJob {
 
     private final BookingRepository bookingRepository;
-    private final NotificationDispatcher dispatcher;
+    private final NotificationOutboxRepository outboxRepository;
     private final Clock clock;
 
     // Run every 5 minutes
@@ -43,15 +43,17 @@ public class ReminderJob {
             // We use the renter's email
             String email = b.getRenter().getEmail();
             if (email != null) {
-                dispatcher.enqueue(
-                        b.getRenter().getId(),
-                        "REMINDER_24H",
-                        "en",
-                        email,
-                        Map.of("bookingId", b.getId(), "hallId", b.getHall().getId(), "startAt", b.getStartAt().toString()),
-                        dedupeKey,
-                        List.of(NotificationChannel.EMAIL)
-                );
+                com.smartspace.notification.entity.NotificationOutbox outbox = com.smartspace.notification.entity.NotificationOutbox.builder()
+                        .userId(b.getRenter().getId())
+                        .channel(NotificationChannel.EMAIL)
+                        .templateCode("REMINDER_24H")
+                        .language("en")
+                        .destination(email)
+                        .payload("{\"bookingId\": " + b.getId() + ", \"hallId\": " + b.getHall().getId() + ", \"startAt\": \"" + b.getStartAt().toString() + "\"}")
+                        .dedupeKey(dedupeKey)
+                        .nextAttemptAt(Instant.now(clock))
+                        .build();
+                outboxRepository.save(outbox);
             }
         }
 
@@ -67,15 +69,17 @@ public class ReminderJob {
             String dedupeKey = "REMINDER_2H:" + b.getId();
             String phone = b.getRenter().getPhone();
             if (phone != null) {
-                dispatcher.enqueue(
-                        b.getRenter().getId(),
-                        "REMINDER_2H",
-                        "en",
-                        phone,
-                        Map.of("bookingId", b.getId(), "hallId", b.getHall().getId(), "startAt", b.getStartAt().toString()),
-                        dedupeKey,
-                        List.of(NotificationChannel.SMS, NotificationChannel.IN_APP)
-                );
+                com.smartspace.notification.entity.NotificationOutbox outbox = com.smartspace.notification.entity.NotificationOutbox.builder()
+                        .userId(b.getRenter().getId())
+                        .channel(NotificationChannel.SMS)
+                        .templateCode("REMINDER_2H")
+                        .language("en")
+                        .destination(phone)
+                        .payload("{\"bookingId\": " + b.getId() + ", \"hallId\": " + b.getHall().getId() + ", \"startAt\": \"" + b.getStartAt().toString() + "\"}")
+                        .dedupeKey(dedupeKey)
+                        .nextAttemptAt(Instant.now(clock))
+                        .build();
+                outboxRepository.save(outbox);
             }
         }
     }

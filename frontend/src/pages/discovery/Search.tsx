@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { TrustBadge } from '../../components/trust/TrustBadge';
+import { NLSearchBar } from '../../components/discovery/NLSearchBar';
 
 export default function Search() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [halls, setHalls] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [nlFilters, setNlFilters] = useState<any>({});
 
   // Mock trust score for now
   const mockTrustScore = {
@@ -69,6 +71,35 @@ export default function Search() {
         </div>
       </div>
       <div className="w-3/4">
+        <NLSearchBar onFiltersParsed={(filters) => {
+           setNlFilters(filters);
+           // In MVP, we just show them as chips, maybe update URL params
+           const params = new URLSearchParams(searchParams.toString());
+           if (filters.guests) params.set('guests', filters.guests.toString());
+           if (filters.date) params.set('date', filters.date);
+           setSearchParams(params);
+        }} />
+
+        {Object.keys(nlFilters).length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            <span className="text-sm font-medium text-gray-700 py-1">Smart Filters:</span>
+            {Object.entries(nlFilters).map(([k, v]) => {
+              if (!v) return null;
+              if (Array.isArray(v) && v.length === 0) return null;
+              return (
+                <span key={k} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  {k}: {Array.isArray(v) ? v.join(', ') : v?.toString()}
+                  <button type="button" onClick={() => {
+                    const newF = { ...nlFilters };
+                    delete newF[k];
+                    setNlFilters(newF);
+                  }} className="ml-2 text-blue-500 hover:text-blue-700 font-bold">&times;</button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <h2 className="text-lg font-medium text-gray-900 mb-4">Results ({halls.length})</h2>
         {loading ? (
           <p>Loading...</p>

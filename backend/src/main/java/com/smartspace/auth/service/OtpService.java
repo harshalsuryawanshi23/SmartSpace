@@ -39,7 +39,7 @@ public class OtpService {
         if (existing.isPresent()) {
             OtpChallenge challenge = existing.get();
             if (challenge.getCreatedAt().plus(1, ChronoUnit.MINUTES).isAfter(clock.instant())) {
-                throw new DomainException(ErrorCode.RATE_LIMIT_EXCEEDED, "Please wait before requesting another OTP");
+                throw new DomainException(ErrorCode.RATE_LIMITED, "Please wait before requesting another OTP");
             }
         }
 
@@ -47,7 +47,7 @@ public class OtpService {
         String codeHash = hashOtp(rawOtp);
 
         OtpChallenge challenge = OtpChallenge.builder()
-                .publicId(IdGenerator.generatePublicId("otp"))
+                .publicId(java.util.UUID.randomUUID().toString())
                 .target(target)
                 .purpose(purpose)
                 .userId(userId)

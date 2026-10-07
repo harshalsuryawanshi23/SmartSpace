@@ -321,6 +321,7 @@ Host (Linux VM / lab server)
 | ADR-009 | Leaflet + OpenStreetMap | No API key/cost |
 | ADR-010 | PWA instead of native apps | Watchman needs no app-store install; works offline |
 | ADR-011 | Razorpay test mode behind an interface | India-appropriate; swappable/mocked in tests |
+| ADR-012 | Production Deployment | Usage of docker-compose.prod.yml and custom shell scripts to decouple database dump/restore operations from host OS |
 
 ## 12. Definition of "Architecture Complete"
 - Every module in §3.1 exists with the folder layout in §3.1.

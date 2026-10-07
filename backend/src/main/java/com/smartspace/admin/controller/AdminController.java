@@ -14,6 +14,12 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<com.smartspace.user.entity.User>> getAllUsers() {
+        return ResponseEntity.ok(adminService.getAllUsers());
+    }
+
     @PostMapping("/users/{userId}/suspend")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> suspendUser(@PathVariable Long userId, @RequestParam String reason) {

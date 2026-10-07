@@ -7,6 +7,8 @@ import com.smartspace.decorator.service.DecoratorEnquiryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.smartspace.security.auth.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -14,32 +16,41 @@ import org.springframework.web.bind.annotation.*;
 public class DecoratorEnquiryController {
 
     private final DecoratorEnquiryService enquiryService;
+    private final com.smartspace.decorator.service.DecoratorConsoleService consoleService;
 
     // Renter API
     @PostMapping("/decorator-enquiries")
-    public ResponseEntity<DecoratorEnquiry> createEnquiry(
-            @RequestBody CreateEnquiryRequest request,
-            @RequestAttribute("userId") Long userId) {
-        // In a real scenario userId is taken from SecurityContext, here it's mocked via attribute/header
-        return ResponseEntity.ok(enquiryService.createEnquiry(request, userId != null ? userId : 1L)); // Fallback for mocking
+    @PreAuthorize("hasRole('RENTER')")
+    public ResponseEntity<DecoratorEnquiry> createEnquiry(@RequestBody CreateEnquiryRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(enquiryService.createEnquiry(request, userId)); 
     }
 
     @PostMapping("/decorator-enquiries/{id}/confirm")
-    public ResponseEntity<Void> confirmEnquiry(
-            @PathVariable Long id,
-            @RequestAttribute("userId") Long userId) {
-        enquiryService.confirmEnquiry(id, userId != null ? userId : 1L);
+    @PreAuthorize("hasRole('RENTER')")
+    public ResponseEntity<Void> confirmEnquiry(@PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        enquiryService.confirmEnquiry(id, userId);
         return ResponseEntity.ok().build();
     }
 
     // Vendor (Decorator) API
+    @GetMapping("/vendor/enquiries")
+    @PreAuthorize("hasRole('VENDOR')")
+    public ResponseEntity<java.util.List<com.smartspace.decorator.dto.DecoratorEnquiryResponse>> getVendorEnquiries() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(
+            consoleService.getEnquiries(userId)
+        );
+    }
+
     @PostMapping("/vendor/enquiries/{id}/respond")
+    @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<Void> respondEnquiry(
             @PathVariable Long id,
-            @RequestBody RespondEnquiryRequest request,
-            @RequestAttribute("userId") Long userId) {
-        // Fallback for mocking if no auth filter
-        enquiryService.respondToEnquiry(id, userId != null ? userId : 2L, request); 
+            @RequestBody RespondEnquiryRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        enquiryService.respondToEnquiry(id, userId, request); 
         return ResponseEntity.ok().build();
     }
 }

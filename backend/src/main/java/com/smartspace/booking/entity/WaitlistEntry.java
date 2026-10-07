@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "waitlist_entries")
@@ -25,7 +25,7 @@ public class WaitlistEntry extends BaseEntity {
     private Hall hall;
 
     @Column(name = "start_time", nullable = false)
-    private ZonedDateTime startTime;
+    private Instant startTime;
 
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;

@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,13 +79,13 @@ public class TrustScoreServiceTest {
         // Penalty = 0.05 * 1 = 0.05
         // 100 * (1 - 0.05) * 0.76428 = 72.607 -> 72.61.
         
-        Booking b1 = new Booking(); b1.setId(1L); b1.setStatus(BookingStatus.COMPLETED); b1.setEndAt(Instant.now()); b1.setStartAt(Instant.now().minus(Duration.ofHours(2)));
-        Booking b2 = new Booking(); b2.setId(2L); b2.setStatus(BookingStatus.COMPLETED); b2.setEndAt(Instant.now()); b2.setStartAt(Instant.now().minus(Duration.ofHours(2)));
-        Booking b3 = new Booking(); b3.setId(3L); b3.setStatus(BookingStatus.COMPLETED); b3.setEndAt(Instant.now()); b3.setStartAt(Instant.now().minus(Duration.ofHours(2)));
-        Booking b4 = new Booking(); b4.setId(4L); b4.setStatus(BookingStatus.COMPLETED); b4.setEndAt(Instant.now()); b4.setStartAt(Instant.now().minus(Duration.ofHours(2)));
+        Booking b1 = new Booking(); org.springframework.test.util.ReflectionTestUtils.setField(b1, "id", 1L); b1.setStatus(BookingStatus.COMPLETED); b1.setEndAt(Instant.now()); b1.setStartAt(Instant.now().minus(Duration.ofHours(2)));
+        Booking b2 = new Booking(); org.springframework.test.util.ReflectionTestUtils.setField(b2, "id", 2L); b2.setStatus(BookingStatus.COMPLETED); b2.setEndAt(Instant.now()); b2.setStartAt(Instant.now().minus(Duration.ofHours(2)));
+        Booking b3 = new Booking(); org.springframework.test.util.ReflectionTestUtils.setField(b3, "id", 3L); b3.setStatus(BookingStatus.COMPLETED); b3.setEndAt(Instant.now()); b3.setStartAt(Instant.now().minus(Duration.ofHours(2)));
+        Booking b4 = new Booking(); org.springframework.test.util.ReflectionTestUtils.setField(b4, "id", 4L); b4.setStatus(BookingStatus.COMPLETED); b4.setEndAt(Instant.now()); b4.setStartAt(Instant.now().minus(Duration.ofHours(2)));
         
         // Late cancellation
-        Booking bLate = new Booking(); bLate.setId(5L); bLate.setStatus(BookingStatus.CANCELLED); bLate.setCancelledBy(ActorType.RENTER);
+        Booking bLate = new Booking(); org.springframework.test.util.ReflectionTestUtils.setField(bLate, "id", 5L); bLate.setStatus(BookingStatus.CANCELLED); bLate.setCancelledBy(ActorType.RENTER);
         bLate.setCancellationPolicy(CancellationPolicy.STRICT); bLate.setStartAt(Instant.now().plus(Duration.ofHours(24))); bLate.setCancelledAt(Instant.now());
 
         when(bookingRepository.findByRenterIdOrderByStartAtDesc(1L)).thenReturn(Arrays.asList(b1, b2, b3, b4, bLate));

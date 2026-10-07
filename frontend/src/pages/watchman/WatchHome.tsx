@@ -104,6 +104,7 @@ export default function WatchHome() {
                              updateHeadcount(b.id, newCount);
                           }}
                           className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-300"
+                          aria-label="Decrease headcount"
                         >-</button>
                         <span className={`px-3 py-1 font-mono font-bold rounded ${
                             b.alertLevel === 'CRITICAL' ? 'bg-red-200 text-red-900' : 
@@ -118,6 +119,7 @@ export default function WatchHome() {
                              updateHeadcount(b.id, newCount);
                           }}
                           className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-300"
+                          aria-label="Increase headcount"
                         >+</button>
                       </div>
                     </div>

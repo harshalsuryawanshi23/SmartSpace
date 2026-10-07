@@ -20,4 +20,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.lockExpiresAt < :now")
     List<Booking> findExpiredLocks(@Param("status") BookingStatus status, @Param("now") Instant now);
+
+    @Query("SELECT b FROM Booking b JOIN b.hall h WHERE h.ownerUserId = :ownerId AND b.startAt BETWEEN :start AND :end")
+    List<Booking> findByHallOwnerUserIdAndStartAtBetween(@Param("ownerId") Long ownerId, @Param("start") Instant start, @Param("end") Instant end);
 }

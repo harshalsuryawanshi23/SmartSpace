@@ -18,17 +18,32 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final Clock clock;
-    private final com.smartspace.auth.repository.UserRepository userRepository;
+    private final com.smartspace.user.repository.UserRepository userRepository;
 
     @Transactional
     public void notifyUser(Long userId, String type, String content, String priority) {
-        com.smartspace.auth.entity.User user = userRepository.findById(userId).orElseThrow();
+        com.smartspace.user.entity.User user = userRepository.findById(userId).orElseThrow();
+        // Since getPreferredLanguage doesn't exist yet on User, we mock it for MVP
+        String lang = "en"; 
+        
+        // MVP: Simple translation prefixing or logic for templates based on 'lang'
+        String localizedContent = translateContent(lang, type, content);
+
         Notification n = new Notification();
         n.setUser(user);
         n.setType(type);
-        n.setContent(content);
-        n.setPriority(priority);
+        n.setTitle(type); // fallback title
+        n.setBody(localizedContent);
         notificationRepository.save(n);
+    }
+
+    private String translateContent(String lang, String type, String content) {
+        if ("hi".equalsIgnoreCase(lang)) {
+            return "[Hindi] " + content; // MVP Stub
+        } else if ("mr".equalsIgnoreCase(lang)) {
+            return "[Marathi] " + content; // MVP Stub
+        }
+        return content;
     }
 
     @Transactional(readOnly = true)

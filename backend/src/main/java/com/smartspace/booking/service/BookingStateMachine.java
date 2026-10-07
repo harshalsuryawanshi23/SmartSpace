@@ -66,7 +66,7 @@ public class BookingStateMachine {
         }
 
         if (!valid) {
-            throw new DomainException("ILLEGAL_STATE_TRANSITION", "Cannot transition booking from " + current + " to " + target);
+            throw new DomainException(com.smartspace.common.exception.ErrorCode.ILLEGAL_STATE_TRANSITION, "Cannot transition booking from " + current + " to " + target);
         }
     }
 }

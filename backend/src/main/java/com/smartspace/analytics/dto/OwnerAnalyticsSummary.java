@@ -17,4 +17,5 @@ public class OwnerAnalyticsSummary {
     private BigDecimal cancellationRate;
     private BigDecimal noShowRate;
     private BigDecimal avgHeadcountDeclaredRatio;
+    private java.util.Map<String, Integer> usageHeatmap;
 }

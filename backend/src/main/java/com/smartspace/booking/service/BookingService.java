@@ -2,8 +2,8 @@ package com.smartspace.booking.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smartspace.auth.entity.User;
-import com.smartspace.auth.repository.UserRepository;
+import com.smartspace.user.entity.User;
+import com.smartspace.user.repository.UserRepository;
 import com.smartspace.booking.dto.BookingCreateRequest;
 import com.smartspace.booking.dto.BookingQuoteRequest;
 import com.smartspace.booking.dto.PriceBreakdown;
@@ -13,8 +13,8 @@ import com.smartspace.booking.repository.IdempotencyKeyRepository;
 import com.smartspace.common.exception.DomainException;
 import com.smartspace.listing.entity.Hall;
 import com.smartspace.listing.repository.HallRepository;
-import com.smartspace.user.repository.SocietyMemberRepository;
-import com.smartspace.user.entity.SocietyMember;
+import com.smartspace.listing.repository.SocietyMemberRepository;
+import com.smartspace.listing.entity.SocietyMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +47,8 @@ public class BookingService {
         Hall hall = hallRepository.findById(req.getHallId())
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Hall not found"));
         
-        boolean isMember = societyMemberRepository.findByUserIdAndHallId(userId, hall.getId())
-                .map(m -> "APPROVED".equals(m.getStatus()))
+        boolean isMember = societyMemberRepository.findById(new com.smartspace.listing.entity.SocietyMemberId(hall.getSocietyId(), userId))
+                .map(m -> com.smartspace.listing.entity.SocietyMemberStatus.APPROVED.equals(m.getStatus()))
                 .orElse(false);
 
         rulesValidator.validate(hall, req.getStartAt(), req.getEndAt(), req.getGuestCount(), isMember, Instant.now(clock));
@@ -84,8 +84,8 @@ public class BookingService {
         User renter = userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "User not found"));
 
-        boolean isMember = societyMemberRepository.findByUserIdAndHallId(userId, hall.getId())
-                .map(m -> "APPROVED".equals(m.getStatus()))
+        boolean isMember = societyMemberRepository.findById(new com.smartspace.listing.entity.SocietyMemberId(hall.getSocietyId(), userId))
+                .map(m -> com.smartspace.listing.entity.SocietyMemberStatus.APPROVED.equals(m.getStatus()))
                 .orElse(false);
 
         rulesValidator.validate(hall, req.getStartAt(), req.getEndAt(), req.getGuestCount(), isMember, Instant.now(clock));
@@ -117,7 +117,7 @@ public class BookingService {
         booking.setPriceTotal(price.getTotal());
         booking.setCurrency(price.getCurrency());
         booking.setMemberBooking(isMember);
-        booking.setCancellationPolicy(hall.getCancellationPolicy());
+        booking.setCancellationPolicy(com.smartspace.booking.entity.CancellationPolicy.valueOf(hall.getCancellationPolicy().name()));
 
         booking = bookingRepository.save(booking);
 

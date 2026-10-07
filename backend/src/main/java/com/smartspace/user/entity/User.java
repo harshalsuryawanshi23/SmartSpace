@@ -39,7 +39,7 @@ public class User {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, unique = true, length = 36)
+    @Column(name = "public_id", nullable = false, unique = true, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @Column(name = "full_name", nullable = false, length = 120)
@@ -55,7 +55,7 @@ public class User {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "ENUM('PENDING','ACTIVE','SUSPENDED','DELETED')")
     @Builder.Default
     private UserStatus status = UserStatus.PENDING;
 
@@ -65,7 +65,7 @@ public class User {
     @Column(name = "phone_verified_at")
     private Instant phoneVerifiedAt;
 
-    @Column(name = "preferred_language", nullable = false)
+    @Column(name = "preferred_language", nullable = false, columnDefinition = "ENUM('en','hi','mr')")
     @Builder.Default
     private String preferredLanguage = "en";
 
@@ -78,7 +78,7 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
+    @Column(name = "role", columnDefinition = "ENUM('RESIDENT','HALL_OWNER','WATCHMAN','DECORATOR','ADMIN')")
     @Builder.Default
     private Set<UserRole> roles = new HashSet<>();
 

@@ -27,7 +27,7 @@ public class HallPhoto {
     @Column(length = 160)
     private String caption;
 
-    @Column(name = "sort_order", nullable = false)
+    @Column(name = "sort_order", nullable = false, columnDefinition = "SMALLINT")
     private Integer sortOrder;
 
     @CreationTimestamp

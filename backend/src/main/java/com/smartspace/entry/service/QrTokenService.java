@@ -139,7 +139,7 @@ public class QrTokenService {
             
             // 6. Booking status
             if (booking.getStatus() != BookingStatus.CONFIRMED && booking.getStatus() != BookingStatus.CHECKED_IN) {
-                if (booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.CANCELLED_AUTO) {
+                if (booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.EXPIRED) {
                     return "BOOKING_CANCELLED";
                 }
                 return "BOOKING_NOT_ACTIVE";

@@ -1,7 +1,7 @@
 package com.smartspace.listing.service;
 
-import com.smartspace.auth.entity.User;
-import com.smartspace.auth.repository.UserRepository;
+import com.smartspace.user.entity.User;
+import com.smartspace.user.repository.UserRepository;
 import com.smartspace.listing.dto.SocietyCreateRequest;
 import com.smartspace.listing.dto.SocietyDto;
 import com.smartspace.listing.entity.Society;
@@ -71,7 +71,8 @@ public class SocietyService {
         }
         
         SocietyMember member = SocietyMember.builder()
-                .id(id)
+                .societyId(society.getId())
+                .userId(userId)
                 .flatLabel(flatLabel)
                 .status(SocietyMemberStatus.PENDING)
                 .build();

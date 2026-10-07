@@ -29,7 +29,7 @@ public class DisputeEvidence {
     @Column(name = "file_path")
     private String filePath;
 
-    @Column(name = "sha256", length = 64)
+    @Column(name = "sha256", length = 64, columnDefinition = "CHAR(64)")
     private String sha256;
 
     @Column(name = "note", length = 1000)

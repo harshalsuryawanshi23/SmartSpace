@@ -20,6 +20,13 @@ public class DisputeController {
 
     private final DisputeService disputeService;
 
+    @GetMapping("/disputes/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.List<Dispute>> getMyDisputes() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(disputeService.getMyDisputes(userId));
+    }
+
     @PostMapping("/disputes")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Dispute> raiseDispute(@Valid @RequestBody DisputeRaiseRequest request) {
@@ -49,5 +56,11 @@ public class DisputeController {
         Long adminId = SecurityUtils.getCurrentUserId();
         Dispute dispute = disputeService.resolveDispute(adminId, id, request);
         return ResponseEntity.ok(dispute);
+    }
+
+    @GetMapping("/admin/disputes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<Dispute>> getAllDisputes() {
+        return ResponseEntity.ok(disputeService.getAllDisputes());
     }
 }

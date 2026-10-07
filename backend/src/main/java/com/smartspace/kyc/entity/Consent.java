@@ -22,7 +22,7 @@ public class Consent {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('KYC','LOCATION','MARKETING','TERMS','PRIVACY_POLICY')")
     private ConsentPurpose purpose;
 
     @Column(name = "policy_version", nullable = false, length = 20)

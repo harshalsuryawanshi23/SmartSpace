@@ -1,7 +1,7 @@
 package com.smartspace.booking.entity;
 
 import com.smartspace.listing.entity.Hall;
-import com.smartspace.auth.entity.User;
+import com.smartspace.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +26,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, updatable = false, unique = true, length = 36)
+    @Column(nullable = false, updatable = false, unique = true, length = 36, columnDefinition = "CHAR(36)")
     private String publicId = UUID.randomUUID().toString();
 
     @Column(name = "booking_ref", nullable = false, updatable = false, unique = true, length = 20)
@@ -51,7 +51,7 @@ public class Booking {
     @Column(name = "theme_tags", columnDefinition = "json")
     private String themeTags;
 
-    @Column(name = "guest_count", nullable = false)
+    @Column(name = "guest_count", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer guestCount;
 
     @Column(name = "start_at", nullable = false)
@@ -82,7 +82,7 @@ public class Booking {
     @Column(name = "price_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal priceTotal;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
     private String currency = "INR";
 
     @Column(name = "is_member_booking", nullable = false)
@@ -108,13 +108,13 @@ public class Booking {
     @Column(name = "checked_out_at")
     private Instant checkedOutAt;
 
-    @Column(name = "arrived_headcount")
+    @Column(name = "arrived_headcount", columnDefinition = "SMALLINT UNSIGNED")
     private Integer arrivedHeadcount;
 
-    @Column(name = "peak_headcount")
+    @Column(name = "peak_headcount", columnDefinition = "SMALLINT UNSIGNED")
     private Integer peakHeadcount;
 
-    @Column(name = "overstay_minutes", nullable = false)
+    @Column(name = "overstay_minutes", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer overstayMinutes = 0;
 
     @Column(name = "last_overstay_alert_at")

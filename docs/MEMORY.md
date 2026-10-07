@@ -1,8 +1,7 @@
 # Project Memory & Status
 
 ## Current Phase
-Phase 12 (Decorators & Matching) Complete.
-Ready to move to Phase 13 (Admin & Notifications).
+Phase 14 (P1 Hardening) in progress. Phase 12 (Decorators) and Phase 13 (Owner Analytics) are complete.
 
 ## Key Context
 - Stack: Spring Boot 3.4, React 18, Vite, Tailwind CSS 3.4.
@@ -11,8 +10,9 @@ Ready to move to Phase 13 (Admin & Notifications).
 
 ## Pending items
 - Need to run `mvn wrapper:wrapper` on a machine with maven, or commit the maven wrapper binaries.
-- Phase 12 completed, `V9__Decorators_schema.sql` created for Decorators.
-- MatchScorer and Decorator Console implemented.
+- Phase 12 completed: MatchScorer and Decorator Console API are secure and verified.
+- Phase 13 completed: Owner Analytics (summary, heatmap, export) API is secure and verified.
+- **Known Gap**: In Analytics, `ownerEarnings` currently equals `grossRevenue` (platform fee and member discount deductions are not yet implemented in the calculation). Do not fix right now; tackle in future phases.
 
 ## Phase 14: Security Review Sign-off
 - [x] **Authorization Matrix**: Verified all controllers use `@PreAuthorize` with appropriate role checks (`hasRole('ADMIN')`, `hasRole('OWNER')`).

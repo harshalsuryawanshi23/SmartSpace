@@ -24,7 +24,7 @@ public class HallPriceRule {
     @Column(nullable = false, length = 60)
     private String label;
 
-    @Column(name = "days_mask", nullable = false)
+    @Column(name = "days_mask", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer daysMask;
 
     @Column(name = "from_time", nullable = false)
@@ -36,7 +36,7 @@ public class HallPriceRule {
     @Column(name = "price_per_hour", nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePerHour;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "SMALLINT")
     private Integer priority;
 
     @Column(nullable = false)

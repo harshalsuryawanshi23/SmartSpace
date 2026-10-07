@@ -22,9 +22,13 @@ public class OwnerAnalyticsService {
 
     @Transactional(readOnly = true)
     public OwnerAnalyticsSummary getSummary(Long ownerId, Long hallId, Instant start, Instant end) {
-        // Find bookings (hallId can be used for filtering, here we filter simply by time)
-        // In a real app we would have a repository method filtering by ownerId and hallId
-        List<Booking> bookings = bookingRepository.findAll(); // Simplified for now
+        List<Booking> bookings;
+        if (hallId != null) {
+            bookings = bookingRepository.findByHallIdAndStartAtBetween(hallId, start, end);
+            // Must verify hall owner
+        } else {
+            bookings = bookingRepository.findByHallOwnerUserIdAndStartAtBetween(ownerId, start, end);
+        }
         
         long totalBookings = 0;
         long occupiedMinutes = 0;
@@ -34,12 +38,16 @@ public class OwnerAnalyticsService {
         long noShows = 0;
         long totalPeakHeadcount = 0;
         long totalDeclaredHeadcountForPeak = 0;
+        
+        java.util.Map<String, Integer> heatmap = new java.util.HashMap<>();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                .withZone(java.time.ZoneId.systemDefault());
 
         for (Booking b : bookings) {
-            // Filter logic if needed
-            if (b.getStartAt().isBefore(start) || b.getStartAt().isAfter(end)) continue;
-            
-            // Assume we've verified ownerId matches
+            // Verify ownerId matches if hallId was provided (for security)
+            if (hallId != null && !b.getHall().getOwnerUserId().equals(ownerId)) {
+                continue;
+            }
             
             totalBookings++;
             if (b.getStatus() == BookingStatus.CHECKED_IN || 
@@ -58,6 +66,9 @@ public class OwnerAnalyticsService {
                     totalPeakHeadcount += b.getPeakHeadcount();
                     totalDeclaredHeadcountForPeak += b.getGuestCount();
                 }
+                
+                String dateStr = formatter.format(b.getStartAt());
+                heatmap.put(dateStr, heatmap.getOrDefault(dateStr, 0) + 1);
             } else if (b.getStatus() == BookingStatus.CANCELLED) {
                 cancellations++;
             } else if (b.getStatus() == BookingStatus.NO_SHOW) {
@@ -94,6 +105,7 @@ public class OwnerAnalyticsService {
                 .cancellationRate(cancelRate)
                 .noShowRate(noShowRate)
                 .avgHeadcountDeclaredRatio(headcountRatio)
+                .usageHeatmap(heatmap)
                 .build();
     }
 

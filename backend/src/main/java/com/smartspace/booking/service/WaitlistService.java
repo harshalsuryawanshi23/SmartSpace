@@ -29,15 +29,12 @@ public class WaitlistService {
     public void promote(Long hallId, Instant freedWindowStart, Instant freedWindowEnd) {
         log.info("Checking waitlist for hall {} in window {} - {}", hallId, freedWindowStart, freedWindowEnd);
         
-        ZonedDateTime start = freedWindowStart.atZone(java.time.ZoneId.of("UTC"));
-        ZonedDateTime end = freedWindowEnd.atZone(java.time.ZoneId.of("UTC"));
-
         List<WaitlistEntry> candidates = waitlistEntryRepository
-                .findByHallIdAndStatusAndStartTimeBetweenOrderByCreatedAtAsc(hallId, "WAITING", start, end);
+                .findByHallIdAndStatusAndStartTimeBetweenOrderByCreatedAtAsc(hallId, "WAITING", freedWindowStart, freedWindowEnd);
 
         for (WaitlistEntry entry : candidates) {
-            ZonedDateTime entryEnd = entry.getStartTime().plusMinutes(entry.getDurationMinutes());
-            if (!entry.getStartTime().isBefore(start) && !entryEnd.isAfter(end)) {
+            Instant entryEnd = entry.getStartTime().plus(entry.getDurationMinutes(), java.time.temporal.ChronoUnit.MINUTES);
+            if (!entry.getStartTime().isBefore(freedWindowStart) && !entryEnd.isAfter(freedWindowEnd)) {
                 log.info("Promoting waitlist entry {} for user {}", entry.getId(), entry.getUser().getId());
                 
                 // 1. Create a system-initiated PENDING_PAYMENT booking with 15-minute lock

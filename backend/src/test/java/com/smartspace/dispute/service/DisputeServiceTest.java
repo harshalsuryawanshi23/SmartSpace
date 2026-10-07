@@ -75,7 +75,7 @@ class DisputeServiceTest {
         booking.setEndAt(Instant.now(clock).minus(24, ChronoUnit.HOURS));
 
         User user = new User();
-        user.setId(userId);
+        org.springframework.test.util.ReflectionTestUtils.setField(user, "id", userId);
 
         when(bookingRepository.findById(10L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

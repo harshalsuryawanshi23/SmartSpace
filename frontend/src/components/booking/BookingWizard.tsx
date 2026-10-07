@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BookingQuoteRequest, BookingCreateRequest, PriceBreakdown, BookingResponse } from './bookingTypes';
+import { useTranslation } from 'react-i18next';
+import type { BookingQuoteRequest, BookingCreateRequest, PriceBreakdown, BookingResponse } from './bookingTypes';
 
 interface BookingWizardProps {
   hallId: number;
@@ -8,10 +9,18 @@ interface BookingWizardProps {
 }
 
 export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess, onCancel }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [alternatives, setAlternatives] = useState<any[]>([]);
+  const [splitCost, setSplitCost] = useState(false);
+  const [bookingResult, setBookingResult] = useState<BookingResponse | null>(null);
+  
+  // Co-host state
+  const [cohostName, setCohostName] = useState('');
+  const [cohostAmount, setCohostAmount] = useState('');
+  const [cohosts, setCohosts] = useState<any[]>([]);
 
   // Step 1: Slot Selection
   const [date, setDate] = useState('');
@@ -118,7 +127,13 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
       }
 
       const booking = await res.json();
-      if (onSuccess) onSuccess(booking);
+      setBookingResult(booking);
+      
+      if (splitCost) {
+        setStep(4);
+      } else {
+        if (onSuccess) onSuccess(booking);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -128,13 +143,16 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4">Book Hall</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('booking.title')}</h2>
       
       {/* Progress */}
       <div className="flex mb-6 text-sm font-medium">
-        <div className={`flex-1 pb-2 border-b-2 ${step >= 1 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>1. Time</div>
-        <div className={`flex-1 pb-2 border-b-2 ${step >= 2 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>2. Details</div>
-        <div className={`flex-1 pb-2 border-b-2 ${step >= 3 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>3. Review</div>
+        <div className={`flex-1 pb-2 border-b-2 ${step >= 1 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>{t('booking.step1')}</div>
+        <div className={`flex-1 pb-2 border-b-2 ${step >= 2 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>{t('booking.step2')}</div>
+        <div className={`flex-1 pb-2 border-b-2 ${step >= 3 ? 'border-primary text-primary' : 'border-gray-200 text-gray-400'}`}>{t('booking.step3')}</div>
+        {splitCost && step >= 4 && (
+           <div className="flex-1 pb-2 border-b-2 border-primary text-primary">Split</div>
+        )}
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
@@ -157,21 +175,21 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
       {step === 1 && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
+            <label className="block text-sm font-medium mb-1">{t('booking.date')}</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-2 border rounded" />
           </div>
           <div className="flex space-x-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-1">Start Time</label>
+              <label className="block text-sm font-medium mb-1">{t('booking.startTime')}</label>
               <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} step="1800" className="w-full p-2 border rounded" />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-1">End Time</label>
+              <label className="block text-sm font-medium mb-1">{t('booking.endTime')}</label>
               <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} step="1800" className="w-full p-2 border rounded" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Guests</label>
+            <label className="block text-sm font-medium mb-1">{t('booking.guests')}</label>
             <input type="number" value={guestCount} onChange={(e) => setGuestCount(Number(e.target.value))} min="1" className="w-full p-2 border rounded" />
           </div>
         </div>
@@ -229,30 +247,99 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({ hallId, onSuccess,
             <span>Total</span>
             <span>{quote.currency} {quote.total.toFixed(2)}</span>
           </div>
+          <div className="pt-4 flex items-center">
+            <input type="checkbox" id="splitCost" checked={splitCost} onChange={(e) => setSplitCost(e.target.checked)} className="mr-2" />
+            <label htmlFor="splitCost" className="text-sm font-medium">Split Cost with Co-hosts (Extend lock to 30 mins)</label>
+          </div>
         </div>
       )}
 
-      <div className="mt-6 flex justify-between">
-        {step > 1 ? (
-          <button onClick={() => setStep(step - 1)} className="px-4 py-2 border rounded hover:bg-gray-100" disabled={loading}>
-            Back
-          </button>
-        ) : (
-          <button onClick={onCancel} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
-            Cancel
-          </button>
-        )}
-        
-        {step < 3 ? (
-          <button onClick={handleNext} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" disabled={loading}>
-            Next
-          </button>
-        ) : (
-          <button onClick={handleBook} className="px-4 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700" disabled={loading}>
-            {loading ? 'Processing...' : 'Confirm Booking'}
-          </button>
-        )}
-      </div>
+      {step === 4 && bookingResult && (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Add Co-hosts to Share Payment</h3>
+          <p className="text-sm text-gray-600">Your total is {quote?.currency} {quote?.total.toFixed(2)}. Add friends to pay a share.</p>
+          <div className="flex space-x-2">
+            <input type="text" placeholder="Name" value={cohostName} onChange={(e) => setCohostName(e.target.value)} className="w-1/2 p-2 border rounded text-sm" />
+            <input type="number" placeholder="Amount" value={cohostAmount} onChange={(e) => setCohostAmount(e.target.value)} className="w-1/3 p-2 border rounded text-sm" />
+            <button 
+              className="bg-blue-600 text-white px-3 py-2 rounded text-sm"
+              onClick={async () => {
+                if (!cohostName || !cohostAmount) return;
+                try {
+                   setLoading(true);
+                   const res = await fetch(`/api/v1/bookings/${bookingResult.publicId}/cohosts`, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ displayName: cohostName, shareAmount: parseFloat(cohostAmount) })
+                   });
+                   if (res.ok) {
+                     const co = await res.json();
+                     setCohosts([...cohosts, co]);
+                     setCohostName('');
+                     setCohostAmount('');
+                   }
+                } finally {
+                   setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              Add
+            </button>
+          </div>
+          
+          {cohosts.length > 0 && (
+            <div className="mt-4 border rounded">
+              {cohosts.map((c, i) => (
+                <div key={i} className="p-2 border-b flex justify-between text-sm">
+                  <div>
+                    <span className="font-semibold">{c.displayName}</span> - {c.shareAmount} ({c.status})
+                  </div>
+                  <button className="text-xs text-blue-500 underline" onClick={async () => {
+                    await fetch(`/api/v1/bookings/${bookingResult.publicId}/cohosts/mock-pay/${c.payToken}`, { method: 'POST' });
+                    // optimistically update status
+                    const newCohosts = [...cohosts];
+                    newCohosts[i].status = 'PAID';
+                    setCohosts(newCohosts);
+                  }}>
+                    Mock Pay
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-4 border-t mt-4 flex justify-end">
+             <button onClick={() => { if (onSuccess) onSuccess(bookingResult); }} className="px-4 py-2 bg-green-600 text-white font-bold rounded">
+               Finish
+             </button>
+          </div>
+        </div>
+      )}
+
+      {step < 4 && (
+        <div className="mt-6 flex justify-between">
+          {step > 1 ? (
+            <button onClick={() => setStep(step - 1)} className="px-4 py-2 border rounded hover:bg-gray-100" disabled={loading}>
+              {t('booking.back')}
+            </button>
+          ) : (
+            <button onClick={onCancel} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
+              {t('booking.cancel')}
+            </button>
+          )}
+          
+          {step < 3 ? (
+            <button onClick={handleNext} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark" disabled={loading}>
+              {t('booking.next')}
+            </button>
+          ) : (
+            <button onClick={handleBook} className="px-4 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700" disabled={loading}>
+              {loading ? 'Processing...' : (splitCost ? 'Start Split Cost' : t('booking.confirm'))}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

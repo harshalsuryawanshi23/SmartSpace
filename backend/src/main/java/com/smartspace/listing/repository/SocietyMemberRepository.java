@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository("listingSocietyMemberRepository")
 public interface SocietyMemberRepository extends JpaRepository<SocietyMember, SocietyMemberId> {
-    List<SocietyMember> findByIdSocietyId(Long societyId);
-    List<SocietyMember> findByIdUserId(Long userId);
+    List<SocietyMember> findBySocietyId(Long societyId);
+    List<SocietyMember> findByUserId(Long userId);
 }

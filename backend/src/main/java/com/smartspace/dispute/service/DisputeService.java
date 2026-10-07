@@ -52,12 +52,12 @@ public class DisputeService {
         Dispute dispute = new Dispute();
         dispute.setPublicId(UUID.randomUUID().toString());
         dispute.setBooking(booking);
-        dispute.setRaisedBy(user);
-        dispute.setAgainstSide(request.getAgainstSide());
-        dispute.setCategory(request.getCategory());
+        dispute.setRaisedBy(user.getId());
+        dispute.setAgainstSide(Dispute.AgainstSide.valueOf(request.getAgainstSide().name()));
+        dispute.setCategory(Dispute.Category.valueOf(request.getCategory().name()));
         dispute.setDescription(request.getDescription());
         dispute.setClaimedAmount(request.getClaimedAmount());
-        dispute.setCreatedAt(Instant.now(clock));
+        dispute.setCreatedAt(java.time.LocalDateTime.ofInstant(Instant.now(clock), java.time.ZoneId.systemDefault()));
 
         // Mark booking with dispute_open = true
         // For now, we assume we just save the dispute, the system will check the dispute table to see if it's open
@@ -74,10 +74,10 @@ public class DisputeService {
 
         DisputeEvidence evidence = new DisputeEvidence();
         evidence.setDispute(dispute);
-        evidence.setSubmittedBy(user);
+        evidence.setSubmittedBy(user.getId());
         evidence.setFilePath(filePath);
         evidence.setNote(note);
-        evidence.setCreatedAt(Instant.now(clock));
+        evidence.setCreatedAt(java.time.LocalDateTime.ofInstant(Instant.now(clock), java.time.ZoneId.systemDefault()));
 
         return disputeEvidenceRepository.save(evidence);
     }
@@ -92,11 +92,21 @@ public class DisputeService {
 
         dispute.setStatus(request.getStatus());
         dispute.setResolutionNote(request.getResolutionNote());
-        dispute.setResolvedBy(admin);
-        dispute.setResolvedAt(Instant.now(clock));
+        dispute.setResolvedBy(admin.getId());
+        dispute.setResolvedAt(java.time.LocalDateTime.ofInstant(Instant.now(clock), java.time.ZoneId.systemDefault()));
 
         // Here we could implement hooks for trust penalties and refunds
 
         return disputeRepository.save(dispute);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Dispute> getMyDisputes(Long userId) {
+        return disputeRepository.findByRaisedBy(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Dispute> getAllDisputes() {
+        return disputeRepository.findAll();
     }
 }

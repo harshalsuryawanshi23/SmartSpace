@@ -38,7 +38,7 @@ public class KycService {
     @Transactional
     public void recordConsent(Long userId, ConsentRequest request, String ipAddress) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new DomainException("User not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.VALIDATION_ERROR, "User not found"));
 
         Consent consent = new Consent();
         consent.setUser(user);
@@ -53,10 +53,10 @@ public class KycService {
     @Transactional
     public KycStartResponse startKyc(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new DomainException("User not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.VALIDATION_ERROR, "User not found"));
 
         Consent activeConsent = consentRepository.findFirstByUserIdAndPurposeAndRevokedAtIsNullOrderByGrantedAtDesc(userId, ConsentPurpose.KYC)
-                .orElseThrow(() -> new DomainException("Active KYC consent is required"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.VALIDATION_ERROR, "Active KYC consent is required"));
 
         KycSession session = identityProvider.start(new com.smartspace.kyc.provider.KycStartRequest(userId));
 
@@ -77,14 +77,14 @@ public class KycService {
     @Transactional
     public void completeKyc(Long userId, String sessionId) {
         KycVerification verification = kycVerificationRepository.findFirstByProviderRef(sessionId)
-                .orElseThrow(() -> new DomainException("KYC session not found"));
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.VALIDATION_ERROR, "KYC session not found"));
 
         if (!verification.getUser().getId().equals(userId)) {
-            throw new DomainException("Unauthorized KYC session");
+            throw new DomainException(com.smartspace.common.exception.ErrorCode.FORBIDDEN, "Unauthorized KYC session");
         }
 
         if (verification.getStatus() != KycStatus.PENDING) {
-            throw new DomainException("KYC session is not pending");
+            throw new DomainException(com.smartspace.common.exception.ErrorCode.ILLEGAL_STATE_TRANSITION, "KYC session is not pending");
         }
 
         com.smartspace.kyc.provider.KycResult result = identityProvider.fetchResult(sessionId);

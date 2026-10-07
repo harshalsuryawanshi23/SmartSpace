@@ -55,7 +55,7 @@ public class AuthService {
         }
 
         User user = User.builder()
-                .publicId(IdGenerator.generatePublicId("usr"))
+                .publicId(UUID.randomUUID().toString())
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
@@ -76,7 +76,7 @@ public class AuthService {
 
         User user = User.builder()
                 .publicId(UUID.randomUUID().toString())
-                .fullName(request.getFirstName() + " " + request.getLastName())
+                .fullName(request.getFullName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))

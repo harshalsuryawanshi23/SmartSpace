@@ -22,7 +22,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, updatable = false, length = 36)
+    @Column(name = "public_id", nullable = false, updatable = false, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,14 +41,14 @@ public class Payment {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
     private String currency = "INR";
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('CREATED','AUTHORIZED','CAPTURED','FAILED','REFUNDED','PARTIALLY_REFUNDED')")
     private PaymentStatus status;
 
-    @Column(name = "signature_verified", nullable = false)
+    @Column(name = "signature_verified", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean signatureVerified;
 
     @Column(name = "failure_reason", length = 160)

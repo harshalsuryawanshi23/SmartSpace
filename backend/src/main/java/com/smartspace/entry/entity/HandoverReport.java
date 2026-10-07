@@ -1,7 +1,7 @@
 package com.smartspace.entry.entity;
 
 import com.smartspace.booking.entity.Booking;
-import com.smartspace.identity.entity.User;
+import com.smartspace.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +27,7 @@ public class HandoverReport {
     private Booking booking;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "phase", nullable = false)
+    @Column(name = "phase", nullable = false, columnDefinition = "ENUM('BEFORE','AFTER')")
     private HandoverPhase phase;
 
     @Column(name = "checklist", columnDefinition = "JSON", nullable = false)

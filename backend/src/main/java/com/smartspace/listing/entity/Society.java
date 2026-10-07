@@ -21,7 +21,7 @@ public class Society {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "public_id", nullable = false, updatable = false, length = 36)
+    @Column(name = "public_id", nullable = false, updatable = false, length = 36, columnDefinition = "CHAR(36)")
     private String publicId;
 
     @Column(nullable = false, length = 160)
@@ -36,7 +36,7 @@ public class Society {
     @Column(nullable = false, length = 80)
     private String city;
 
-    @Column(nullable = false, length = 6)
+    @Column(nullable = false, length = 6, columnDefinition = "CHAR(6)")
     private String pincode;
 
     @Column(nullable = false, precision = 9, scale = 6)
@@ -52,7 +52,7 @@ public class Society {
     private String registrationDocPath;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "verification_status", nullable = false)
+    @Column(name = "verification_status", nullable = false, columnDefinition = "ENUM('PENDING','APPROVED','REJECTED')")
     private VerificationStatus verificationStatus;
 
     @Column(name = "rejection_reason")

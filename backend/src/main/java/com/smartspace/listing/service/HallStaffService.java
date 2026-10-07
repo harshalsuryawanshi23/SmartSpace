@@ -1,7 +1,7 @@
 package com.smartspace.listing.service;
 
-import com.smartspace.auth.entity.User;
-import com.smartspace.auth.repository.UserRepository;
+import com.smartspace.user.entity.User;
+import com.smartspace.user.repository.UserRepository;
 import com.smartspace.listing.dto.HallStaffDto;
 import com.smartspace.listing.dto.HallStaffRequest;
 import com.smartspace.listing.entity.Hall;
@@ -45,7 +45,7 @@ public class HallStaffService {
                     .email(request.getEmail())
                     .phone(request.getPhone())
                     .passwordHash(passwordEncoder.encode(request.getTempPassword()))
-                    .status(com.smartspace.auth.entity.UserStatus.ACTIVE)
+                    .status(com.smartspace.user.entity.UserStatus.ACTIVE)
                     .preferredLanguage("en")
                     .build();
             return userRepository.save(newUser);

@@ -33,14 +33,14 @@ public class Refund {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('RENTER_CANCEL','OWNER_CANCEL','ADMIN','DISPUTE')")
     private RefundReason reason;
 
     @Column(name = "provider_refund_id", length = 80)
     private String providerRefundId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('PENDING','PROCESSED','FAILED')")
     private RefundStatus status;
 
     @CreationTimestamp

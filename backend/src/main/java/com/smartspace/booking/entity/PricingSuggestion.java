@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
-import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "pricing_suggestions")
@@ -35,7 +33,6 @@ public class PricingSuggestion extends BaseEntity {
     @Column(nullable = false)
     private Integer percentage;
 
-    @Type(JsonBinaryType.class)
     @Column(name = "rationale_json", columnDefinition = "jsonb")
     private String rationaleJson;
 

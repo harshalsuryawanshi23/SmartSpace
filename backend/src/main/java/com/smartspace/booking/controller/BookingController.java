@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.smartspace.security.auth.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/v1/bookings")
@@ -20,24 +22,26 @@ import java.util.stream.Collectors;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final CancellationService cancellationService;
-
+    private final com.smartspace.booking.service.CancellationService cancellationService;
     @PostMapping("/quote")
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<PriceBreakdown> quote(@RequestBody BookingQuoteRequest request) {
-        Long userId = 1L; // TODO: fetch from SecurityContext
+        Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(bookingService.quote(request, userId));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingCreateRequest request) {
-        Long userId = 1L; // TODO: fetch from SecurityContext
+        Long userId = SecurityUtils.getCurrentUserId();
         Booking booking = bookingService.createBooking(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(booking));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<List<BookingResponse>> getMyBookings() {
-        Long userId = 1L; // TODO: fetch from SecurityContext
+        Long userId = SecurityUtils.getCurrentUserId();
         List<BookingResponse> responses = bookingService.getMyBookings(userId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -45,18 +49,28 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<BookingResponse> getBooking(@PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserId();
         Booking booking = bookingService.getBooking(id);
+        if (!booking.getRenter().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(mapToResponse(booking));
     }
 
     @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('RENTER')")
     public ResponseEntity<?> cancelBooking(
             @PathVariable Long id,
             @RequestParam(defaultValue = "false") boolean preview,
             @RequestBody(required = false) String reason) {
-        Long userId = 1L; // TODO: fetch from SecurityContext
+        Long userId = SecurityUtils.getCurrentUserId();
         Booking booking = bookingService.getBooking(id);
+        
+        if (!booking.getRenter().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         
         if (preview) {
             return ResponseEntity.ok(cancellationService.previewRefund(booking, com.smartspace.booking.entity.ActorType.RENTER));

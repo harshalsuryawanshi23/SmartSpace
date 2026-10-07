@@ -3,6 +3,8 @@ package com.smartspace.analytics.controller;
 import com.smartspace.analytics.dto.OwnerAnalyticsSummary;
 import com.smartspace.analytics.service.OwnerAnalyticsService;
 import com.smartspace.security.auth.SecurityUtils;
+import com.smartspace.user.entity.User;
+import com.smartspace.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,29 +15,34 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/api/owner/analytics")
+@RequestMapping("/api/v1/owner/analytics")
 @RequiredArgsConstructor
 public class OwnerAnalyticsController {
 
     private final OwnerAnalyticsService analyticsService;
+    private final UserRepository userRepository;
 
     @GetMapping("/summary")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('HALL_OWNER')")
     public ResponseEntity<OwnerAnalyticsSummary> getSummary(
             @RequestParam(required = false) Long hallId,
             @RequestParam Instant start,
             @RequestParam Instant end) {
-        Long ownerId = SecurityUtils.getCurrentUserId();
+        String publicId = SecurityUtils.getCurrentUserPublicId();
+        User user = userRepository.findByPublicId(publicId).orElseThrow();
+        Long ownerId = user.getId();
         return ResponseEntity.ok(analyticsService.getSummary(ownerId, hallId, start, end));
     }
 
     @GetMapping(value = "/export.csv", produces = "text/csv")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('HALL_OWNER')")
     public ResponseEntity<String> exportCsv(
             @RequestParam(required = false) Long hallId,
             @RequestParam Instant start,
             @RequestParam Instant end) {
-        Long ownerId = SecurityUtils.getCurrentUserId();
+        String publicId = SecurityUtils.getCurrentUserPublicId();
+        User user = userRepository.findByPublicId(publicId).orElseThrow();
+        Long ownerId = user.getId();
         String csv = analyticsService.generateCsvExport(ownerId, hallId, start, end);
         
         HttpHeaders headers = new HttpHeaders();

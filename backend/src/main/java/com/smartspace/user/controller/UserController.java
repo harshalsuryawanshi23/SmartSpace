@@ -8,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.smartspace.user.entity.UserRole;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -53,16 +55,16 @@ public class UserController {
             @AuthenticationPrincipal String publicId,
             @org.springframework.web.bind.annotation.RequestPart("file") org.springframework.web.multipart.MultipartFile file) {
         
-        String path = fileStorageService.storeFile(file, "profile-photos", "image/jpeg", "image/png");
-        userService.updateProfilePhoto(publicId, path);
+        com.smartspace.storage.FileStorageService.FileMetadata metadata = fileStorageService.store(file);
+        userService.updateProfilePhoto(publicId, metadata.getPath());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/watchmen")
     public ResponseEntity<Void> createWatchman(@AuthenticationPrincipal String publicId, @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody com.smartspace.auth.dto.RegisterRequest request) {
         // Enforce owner/admin permission to create watchmen
-        User owner = userService.getByPublicId(publicId);
-        if (owner.getRole() != UserRole.OWNER && owner.getRole() != UserRole.ADMIN) {
+        User owner = userService.getUserByPublicId(publicId);
+        if (!owner.getRoles().contains(UserRole.HALL_OWNER) && !owner.getRoles().contains(UserRole.ADMIN)) {
             throw new com.smartspace.common.exception.DomainException(com.smartspace.common.exception.ErrorCode.FORBIDDEN, "Not authorized to create watchmen");
         }
         

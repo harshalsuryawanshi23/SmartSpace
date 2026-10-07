@@ -28,7 +28,7 @@ public class KycVerification {
     private String providerRef;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "ENUM('PENDING','VERIFIED','FAILED','EXPIRED','REVOKED')")
     private KycStatus status = KycStatus.PENDING;
 
     @Column(name = "verified_name")
@@ -37,7 +37,7 @@ public class KycVerification {
     @Column(name = "masked_id", length = 20)
     private String maskedId;
 
-    @Column(name = "mobile_linked", nullable = false)
+    @Column(name = "mobile_linked", nullable = false, columnDefinition = "TINYINT(1)")
     private boolean mobileLinked = false;
 
     @ManyToOne(fetch = FetchType.LAZY)

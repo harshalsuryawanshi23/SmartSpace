@@ -82,7 +82,7 @@ public class EntryService {
             response.put("verdict", "GO");
             response.put("role", "DECORATOR");
             response.put("bookingRef", booking.getBookingRef());
-            response.put("displayName", booking.getRenter().getName());
+            response.put("displayName", booking.getRenter().getFullName());
             
             // Send in-app notice (Placeholder for notification service call)
             // notificationService.sendNotification(booking.getRenter().getId(), "Decorator arrived");
@@ -98,7 +98,7 @@ public class EntryService {
             response.put("reasonCode", "ALREADY_CHECKED_IN");
             response.put("mode", "REENTRY");
             response.put("bookingRef", booking.getBookingRef());
-            response.put("displayName", booking.getRenter().getName());
+            response.put("displayName", booking.getRenter().getFullName());
             return response;
         }
 
@@ -116,7 +116,7 @@ public class EntryService {
         response.put("reasonCode", "OTP_REQUIRED");
         response.put("bookingRef", booking.getBookingRef());
         response.put("hallName", booking.getHall().getName());
-        response.put("displayName", booking.getRenter().getName());
+        response.put("displayName", booking.getRenter().getFullName());
         response.put("guestsExpected", 0); // Can be added to booking entity if needed
         response.put("challengeId", challenge.getChallengeId());
         
@@ -165,8 +165,6 @@ public class EntryService {
         bookingRepository.save(booking);
         
         // Update Hall Live Status
-        HallLiveStatus hallStatus = hallLiveStatusRepository.findById(booking.getHall().getId())
-                .orElse(HallLiveStatus.builder().hall(booking.getHall()).build());
         hallStatus.setStatus("OCCUPIED");
         hallStatus.setCurrentBooking(booking);
         hallStatus.setCurrentHeadcount(arrivedCount != null ? arrivedCount : 0);
@@ -186,7 +184,7 @@ public class EntryService {
         logScan(booking, watchmanHallId, null, watchmanUserId, "CHECK_IN", "GO", null, "OTP", deviceId, arrivedCount);
         
         response.put("verdict", "GO");
-        response.put("displayName", booking.getRenter().getName());
+        response.put("displayName", booking.getRenter().getFullName());
         response.put("endsAt", booking.getEndAt());
         
         return response;
@@ -202,7 +200,7 @@ public class EntryService {
                 .checklist(request.getChecklist())
                 .checklistScore(java.math.BigDecimal.ONE) // Simplified score calculation
                 .notes(request.getNotes())
-                .recordedBy(new com.smartspace.identity.entity.User(watchmanUserId))
+                .recordedBy(com.smartspace.user.entity.User.builder().id(watchmanUserId).build())
                 .recordedAt(LocalDateTime.now())
                 .build();
                 
@@ -233,7 +231,7 @@ public class EntryService {
                 .checklist(request.getChecklist())
                 .checklistScore(java.math.BigDecimal.ONE) // Simplified score calculation
                 .notes(request.getNotes())
-                .recordedBy(new com.smartspace.identity.entity.User(watchmanUserId))
+                .recordedBy(com.smartspace.user.entity.User.builder().id(watchmanUserId).build())
                 .recordedAt(LocalDateTime.now())
                 .build();
         handoverReportRepository.save(report);
@@ -260,7 +258,7 @@ public class EntryService {
         EntryLog entryLog = EntryLog.builder()
                 .clientEventId(UUID.randomUUID().toString())
                 .booking(booking)
-                .hall(booking != null ? booking.getHall() : (hallId != null ? new com.smartspace.hall.entity.Hall(hallId) : null))
+                .hall(booking != null ? booking.getHall() : (hallId != null ? com.smartspace.listing.entity.Hall.builder().id(hallId).build() : null))
                 .credential(credential)
                 .watchmanUserId(watchmanUserId)
                 .eventType(eventType)
@@ -319,7 +317,7 @@ public class EntryService {
             
             if ("WARN".equals(newLevel) || "CRITICAL".equals(newLevel)) {
                 // Notify owner
-                Long ownerId = booking.getHall().getOwner().getId();
+                Long ownerId = booking.getHall().getOwnerUserId();
                 String message = String.format("Capacity %s for booking %s: %d/%d guests present.", 
                         newLevel, booking.getBookingRef(), count, booking.getGuestCount());
                 notificationService.notifyUser(ownerId, "CAPACITY_" + newLevel, message, "HIGH");
@@ -411,7 +409,7 @@ public class EntryService {
                 EntryLog entryLog = EntryLog.builder()
                         .clientEventId(offLog.getClientEventId())
                         .booking(booking)
-                        .hall(booking != null ? booking.getHall() : (request.getHallId() != null ? new com.smartspace.hall.entity.Hall(request.getHallId()) : null))
+                        .hall(booking != null ? booking.getHall() : (request.getHallId() != null ? com.smartspace.listing.entity.Hall.builder().id(request.getHallId()).build() : null))
                         .credential(credential)
                         .watchmanUserId(watchmanUserId)
                         .eventType(offLog.getEventType())

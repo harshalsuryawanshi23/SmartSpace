@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
 
 interface PricingSuggestion {
   id: number;
@@ -21,7 +21,7 @@ export const PricingAdvisor: React.FC<{ hallId: number }> = ({ hallId }) => {
 
   const fetchSuggestions = async () => {
     try {
-      const res = await fetch(\/api/v1/owner/halls/\/pricing-suggestions\);
+      const res = await fetch(`/api/v1/owner/halls/${hallId}/pricing-suggestions`);
       if (res.ok) {
         const data = await res.json();
         setSuggestions(data);
@@ -35,7 +35,7 @@ export const PricingAdvisor: React.FC<{ hallId: number }> = ({ hallId }) => {
 
   const handleAction = async (id: number, action: 'APPLY' | 'DISMISS') => {
     try {
-      await fetch(\/api/v1/owner/halls/\/pricing-suggestions/\/respond\, {
+      await fetch(`/api/v1/owner/halls/${hallId}/pricing-suggestions/${id}/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),

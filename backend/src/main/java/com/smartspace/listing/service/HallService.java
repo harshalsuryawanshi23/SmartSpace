@@ -1,6 +1,6 @@
 package com.smartspace.listing.service;
 
-import com.smartspace.auth.repository.UserRepository;
+import com.smartspace.user.repository.UserRepository;
 import com.smartspace.listing.dto.HallCreateRequest;
 import com.smartspace.listing.dto.HallDto;
 import com.smartspace.listing.entity.Hall;

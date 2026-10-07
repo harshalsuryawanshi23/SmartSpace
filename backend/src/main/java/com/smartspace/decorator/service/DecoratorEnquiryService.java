@@ -93,8 +93,8 @@ public class DecoratorEnquiryService {
         Booking booking = enquiry.getBooking();
         DecoratorPackage pkg = enquiry.getDecoratorPackage();
         
-        LocalDateTime setupStart = booking.getSlotStart().minusMinutes(pkg.getSetupMinutes());
-        LocalDateTime teardownEnd = booking.getSlotEnd().plusMinutes(pkg.getTeardownMinutes());
+        LocalDateTime setupStart = LocalDateTime.ofInstant(booking.getStartAt(), java.time.ZoneId.systemDefault()).minusMinutes(pkg.getSetupMinutes());
+        LocalDateTime teardownEnd = LocalDateTime.ofInstant(booking.getEndAt(), java.time.ZoneId.systemDefault()).plusMinutes(pkg.getTeardownMinutes());
         
         // TODO: Reserve SETUP cells (skipping complex overlap checks for simplicity, assuming user accepts overlap risk as per v1 spec)
         
