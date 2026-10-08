@@ -51,6 +51,9 @@ springdoc:
     path: /swagger-ui.html
 
 management:
+  health:
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
