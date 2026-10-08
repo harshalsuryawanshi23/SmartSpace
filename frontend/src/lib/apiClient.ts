@@ -1,14 +1,16 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    'http://localhost:8080/api/v1';
 
 export const apiClient = axios.create({
     baseURL: API_URL,
-    withCredentials: true, // Important for refresh token cookie
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
-
-// We can intercept requests to attach access token later if we store it in memory/zustand
-// For now, let's assume we handle it in the AuthProvider or keep the token in apiClient instance
 
 let currentAccessToken: string | null = null;
 
@@ -16,36 +18,92 @@ export const setAccessToken = (token: string | null) => {
     currentAccessToken = token;
 };
 
-apiClient.interceptors.request.use((config) => {
-    if (currentAccessToken) {
-        config.headers.Authorization = `Bearer ${currentAccessToken}`;
-    }
-    return config;
-});
+export const getAccessToken = () => currentAccessToken;
+
+let refreshPromise: Promise<string> | null = null;
+
+apiClient.interceptors.request.use(
+    (config) => {
+        if (currentAccessToken) {
+            config.headers = config.headers || {};
+            config.headers.Authorization =
+                `Bearer ${currentAccessToken}`;
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 apiClient.interceptors.response.use(
     (response) => response,
+
     async (error) => {
         const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-            try {
-                // Call refresh endpoint to get new access token
-                const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
-                const { accessToken } = res.data;
-                setAccessToken(accessToken);
-                // Dispatch event or callback to update React state if needed
-                window.dispatchEvent(new CustomEvent('auth:refresh', { detail: accessToken }));
-                
-                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-                return apiClient(originalRequest);
-            } catch (refreshError) {
-                // Refresh failed (cookie expired or missing)
-                setAccessToken(null);
-                window.dispatchEvent(new Event('auth:logout'));
-                return Promise.reject(refreshError);
-            }
+
+        if (!originalRequest) {
+            return Promise.reject(error);
         }
-        return Promise.reject(error);
+
+        if (error.response?.status !== 401) {
+            return Promise.reject(error);
+        }
+
+        if (originalRequest._retry) {
+            return Promise.reject(error);
+        }
+
+        originalRequest._retry = true;
+
+        try {
+            if (!refreshPromise) {
+                refreshPromise = axios
+                    .post(
+                        `${API_URL}/auth/refresh`,
+                        {},
+                        { withCredentials: true }
+                    )
+                    .then((response) => {
+                        const newToken =
+                            response.data?.accessToken;
+
+                        if (!newToken) {
+                            throw new Error(
+                                'Refresh response did not contain an access token'
+                            );
+                        }
+
+                        setAccessToken(newToken);
+                        return newToken;
+                    })
+                    .finally(() => {
+                        refreshPromise = null;
+                    });
+            }
+
+            const newAccessToken = await refreshPromise;
+
+            originalRequest.headers =
+                originalRequest.headers || {};
+
+            originalRequest.headers.Authorization =
+                `Bearer ${newAccessToken}`;
+
+            window.dispatchEvent(
+                new CustomEvent('auth:refresh', {
+                    detail: newAccessToken
+                })
+            );
+
+            return apiClient(originalRequest);
+        } catch (refreshError) {
+            setAccessToken(null);
+
+            window.dispatchEvent(
+                new Event('auth:logout')
+            );
+
+            return Promise.reject(refreshError);
+        }
     }
 );
