@@ -1,142 +1,239 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import SlotGrid from '../../components/discovery/SlotGrid';
-import { TrustBadge } from '../../components/trust/TrustBadge';
-import DecoratorMatches from '../../components/discovery/DecoratorMatches';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import SlotGrid from "../../components/discovery/SlotGrid";
+import { TrustBadge } from "../../components/trust/TrustBadge";
+import DecoratorMatches from "../../components/discovery/DecoratorMatches";
+import { apiClient } from "../../lib/apiClient";
 
 export default function HallDetail() {
-  const { id } = useParams<{ id: string }>();
-  const [hall, setHall] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
 
-  // Mock trust score for now
-  const mockTrustScore = {
-    score: 73.9,
-    badge: 'TRUSTED' as const,
-    componentsJson: JSON.stringify({
-      priorMean: 0.7,
-      sumWeightedScore: 6.8,
-      sumWeight: 8,
-      penalty: 0.0667,
-      ownerCancellations: 1
-    })
-  };
+    const [hall, setHall] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
 
-  // Mock slots for now
-  const mockSlots = [
-    { time: '09:00', state: 'PAST' as const },
-    { time: '09:30', state: 'PAST' as const },
-    { time: '10:00', state: 'FREE' as const },
-    { time: '10:30', state: 'FREE' as const },
-    { time: '11:00', state: 'FREE' as const },
-    { time: '11:30', state: 'FREE' as const },
-    { time: '12:00', state: 'BOOKED' as const },
-    { time: '12:30', state: 'BOOKED' as const },
-    { time: '13:00', state: 'BUFFER' as const },
-    { time: '13:30', state: 'FREE' as const },
-    { time: '14:00', state: 'FREE' as const },
-    { time: '14:30', state: 'CLOSED' as const },
-  ];
+    const mockSlots = [
+        { time: "09:00", state: "PAST" as const },
+        { time: "09:30", state: "PAST" as const },
+        { time: "10:00", state: "FREE" as const },
+        { time: "10:30", state: "FREE" as const },
+        { time: "11:00", state: "FREE" as const },
+        { time: "11:30", state: "FREE" as const },
+        { time: "12:00", state: "BOOKED" as const },
+        { time: "12:30", state: "BOOKED" as const },
+        { time: "13:00", state: "BUFFER" as const },
+        { time: "13:30", state: "FREE" as const },
+        { time: "14:00", state: "FREE" as const },
+        { time: "14:30", state: "CLOSED" as const }
+    ];
 
-  useEffect(() => {
-    const fetchHall = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/v1/halls/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setHall(data);
+    useEffect(() => {
+        const fetchHall = async () => {
+            setLoading(true);
+
+            try {
+                const response = await apiClient.get(`/halls/${id}`);
+                setHall(response.data);
+            } catch (error) {
+                console.error(error);
+                setHall(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchHall();
         }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    }, [id]);
+
+    const handleBooking = () => {
+        if (!id || selectedSlots.length === 0) {
+            return;
+        }
+
+        navigate(
+            `/booking?hallId=${encodeURIComponent(id)}&slot=${encodeURIComponent(
+                selectedSlots[0]
+            )}`
+        );
     };
-    if (id) fetchHall();
-  }, [id]);
 
-  if (loading) return <main className="p-8 text-center"><h1>Loading...</h1></main>;
-  if (!hall) return <main className="p-8 text-center"><h1>Hall not found</h1></main>;
+    if (loading) {
+        return (
+            <main className="max-w-5xl mx-auto p-8 text-center">
+                Loading hall...
+            </main>
+        );
+    }
 
-  return (
-    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="mb-4">
-        <Link to="/search" className="text-teal-700 hover:text-teal-900">&larr; Back to Search</Link>
-      </div>
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h1>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              {hall.locality}, {hall.city} &middot; ₹{hall.basePricePerHour} / hr &middot; {hall.capacityStanding} guests max
-            </p>
-          </div>
-          <TrustBadge score={mockTrustScore.score} badge={mockTrustScore.badge} componentsJson={mockTrustScore.componentsJson} />
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-          <dl className="sm:divide-y sm:divide-gray-200">
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Description</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {hall.description || 'No description provided.'}
-              </dd>
-            </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Amenities</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <ul className="list-disc pl-5">
-                  {hall.hasAc && <li>Air Conditioning</li>}
-                  {hall.hasParking && <li>Parking</li>}
-                  {hall.hasKitchen && <li>Kitchen</li>}
-                  {hall.hasStage && <li>Stage</li>}
-                  {hall.hasPowerBackup && <li>Power Backup</li>}
-                  {hall.hasWashroom && <li>Washroom</li>}
-                </ul>
-              </dd>
-            </div>
-            <div className="py-4 sm:py-5 sm:px-6">
-              <SlotGrid 
-                slots={mockSlots} 
-                onSelect={(time) => {
-                  setSelectedSlots(prev => 
-                    prev.includes(time) ? prev.filter(t => t !== time) : [...prev, time]
-                  );
-                }} 
-              />
-            </div>
-          </dl>
-        </div>
-      </div>
-      
-      {selectedSlots.some(t => {
-          const [hour] = t.split(':').map(Number);
-          return hour >= 22 || hour < 6;
-      }) && (
-        <div className="mt-4 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded shadow-sm">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-indigo-700">
-                <strong>Quiet Hours apply after 10 PM.</strong> No loud music or noise allowed during these slots.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+    if (!hall) {
+        return (
+            <main className="max-w-5xl mx-auto p-8 text-center">
+                <h1 className="text-xl font-semibold">
+                    Hall not found
+                </h1>
+                <Link
+                    to="/search"
+                    className="inline-block mt-4 text-blue-600"
+                >
+                    Back to search
+                </Link>
+            </main>
+        );
+    }
 
-      {id && <DecoratorMatches hallId={id} />}
+    return (
+        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <Link
+                to="/search"
+                className="text-blue-600 hover:text-blue-800"
+            >
+                ← Back to Search
+            </Link>
 
-      <div className="mt-6 flex justify-end">
-        <button className="bg-teal-600 text-white px-6 py-2 rounded shadow hover:bg-teal-700 disabled:opacity-50" disabled={selectedSlots.length === 0}>
-          Book Now
-        </button>
-      </div>
-    </main>
-  );
+            <div className="mt-4 bg-white shadow-sm border rounded-xl overflow-hidden">
+                <div className="px-5 py-6 md:px-7 flex flex-col md:flex-row justify-between gap-5">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {hall.name}
+                        </h1>
+
+                        <p className="mt-2 text-sm text-gray-500">
+                            {hall.locality}, {hall.city}
+                            {" · "}
+                            ₹{hall.basePricePerHour}/hr
+                            {" · "}
+                            {hall.capacityStanding} guests max
+                        </p>
+                    </div>
+
+                    <TrustBadge
+                        score={73.9}
+                        badge="TRUSTED"
+                        componentsJson={JSON.stringify({
+                            priorMean: 0.7,
+                            sumWeightedScore: 6.8,
+                            sumWeight: 8,
+                            penalty: 0.0667
+                        })}
+                    />
+                </div>
+
+                <div className="border-t px-5 py-6 md:px-7">
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="md:col-span-2">
+                            <h2 className="font-semibold text-gray-800">
+                                About this hall
+                            </h2>
+
+                            <p className="mt-2 text-sm text-gray-600">
+                                {hall.description ||
+                                    "A convenient event space managed through SmartSpace."}
+                            </p>
+
+                            <h3 className="font-semibold text-gray-800 mt-6">
+                                Amenities
+                            </h3>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {hall.hasAc && (
+                                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                                        Air Conditioning
+                                    </span>
+                                )}
+                                {hall.hasParking && (
+                                    <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                                        Parking
+                                    </span>
+                                )}
+                                {hall.hasKitchen && (
+                                    <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm">
+                                        Kitchen
+                                    </span>
+                                )}
+                                {hall.hasStage && (
+                                    <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                                        Stage
+                                    </span>
+                                )}
+                                {hall.hasPowerBackup && (
+                                    <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                        Power Backup
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-xl p-5">
+                            <p className="text-sm text-gray-500">
+                                Starting price
+                            </p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">
+                                ₹{hall.basePricePerHour}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                                per hour
+                            </p>
+
+                            <div className="mt-5">
+                                <p className="text-sm font-medium text-gray-700">
+                                    Selected slots
+                                </p>
+                                <p className="text-2xl font-bold text-blue-600 mt-1">
+                                    {selectedSlots.length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <h2 className="font-semibold text-gray-800 mb-3">
+                            Select an available slot
+                        </h2>
+
+                        <SlotGrid
+                            slots={mockSlots}
+                            onSelect={(time) => {
+                                setSelectedSlots((prev) =>
+                                    prev.includes(time)
+                                        ? prev.filter((t) => t !== time)
+                                        : [...prev, time]
+                                );
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {selectedSlots.some((time) => {
+                const [hour] = time.split(":").map(Number);
+                return hour >= 22 || hour < 6;
+            }) && (
+                <div className="mt-4 bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
+                    <p className="text-sm text-indigo-800">
+                        <strong>Quiet Hours:</strong> No loud music or
+                        excessive noise is permitted after 10 PM.
+                    </p>
+                </div>
+            )}
+
+            {id && (
+                <div className="mt-6">
+                    <DecoratorMatches hallId={id} />
+                </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+                <button
+                    onClick={handleBooking}
+                    disabled={selectedSlots.length === 0}
+                    className="bg-blue-600 text-white px-7 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Continue to Booking →
+                </button>
+            </div>
+        </main>
+    );
 }

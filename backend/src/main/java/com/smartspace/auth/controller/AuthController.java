@@ -111,8 +111,8 @@ public class AuthController {
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .httpOnly(true)
-                .secure(true) // Should be true in production (HTTPS)
-                .path("/api/v1/auth/refresh") // Restrict to refresh endpoint
+                .secure(false) // Local faculty-demo runs over HTTP; enable true behind HTTPS
+                .path("/api/v1/auth") // Available to refresh and logout endpoints
                 .maxAge(Duration.ofDays(7))
                 .sameSite("Strict")
                 .build();
@@ -122,8 +122,8 @@ public class AuthController {
     private void clearRefreshTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
                 .httpOnly(true)
-                .secure(true)
-                .path("/api/v1/auth/refresh")
+                .secure(false)
+                .path("/api/v1/auth")
                 .maxAge(0)
                 .sameSite("Strict")
                 .build();
