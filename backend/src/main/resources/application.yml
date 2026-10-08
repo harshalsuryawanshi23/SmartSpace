@@ -42,7 +42,7 @@ app:
   security:
     otp-pepper: ${OTP_PEPPER:default-otp-pepper-change-me-in-prod}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8088,http://localhost:5173}
 
 springdoc:
   api-docs:
