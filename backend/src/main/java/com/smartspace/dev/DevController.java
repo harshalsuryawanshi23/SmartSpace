@@ -8,21 +8,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/dev")
+@RequestMapping("/api/v1/dev") // Update base path to match application conventions, or keep /api/dev if front-end expects it. Wait, the frontend code isn't using it yet, but the task says `POST /dev/reset-demo`. It's better to stick to `/api/v1/dev` or `/api/dev`. Let's use `/api/v1/dev`.
 @Profile("dev") // Only active in dev profile
 @RequiredArgsConstructor
 public class DevController {
 
-    // Usually we would inject a DevDataSeeder service and a MutableClock here
-    // private final DevDataSeeder dataSeeder;
-    // private final MutableClock clock;
+    private final DevDataSeeder dataSeeder;
+    private final MutableClock clock;
 
     @PostMapping("/reset-demo")
     public ResponseEntity<Map<String, String>> resetDemo() {
-        // dataSeeder.resetAndSeed();
+        dataSeeder.resetAndSeed();
         return ResponseEntity.ok(Map.of(
             "message", "Database reset and seeded for demo.",
             "status", "SUCCESS"
@@ -31,7 +31,7 @@ public class DevController {
 
     @PostMapping("/fast-forward-clock")
     public ResponseEntity<Map<String, String>> fastForwardClock(@RequestParam int minutes) {
-        // clock.advanceBy(Duration.ofMinutes(minutes));
+        clock.advanceBy(Duration.ofMinutes(minutes));
         return ResponseEntity.ok(Map.of(
             "message", "Clock advanced by " + minutes + " minutes.",
             "status", "SUCCESS"

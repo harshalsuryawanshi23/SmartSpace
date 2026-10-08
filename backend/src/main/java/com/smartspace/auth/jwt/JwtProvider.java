@@ -30,12 +30,13 @@ public class JwtProvider {
         this.clock = clock;
     }
 
-    public String generateAccessToken(String publicId, List<String> roles) {
+    public String generateAccessToken(Long userId, String publicId, List<String> roles) {
         Instant now = clock.instant();
         Instant expiry = now.plusSeconds(accessTtlMinutes * 60);
 
         return Jwts.builder()
                 .subject(publicId)
+                .claim("userId", userId)
                 .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))

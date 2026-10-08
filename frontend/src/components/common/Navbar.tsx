@@ -43,14 +43,14 @@ export const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-blue-600">SmartSpace</Link>
+              <Link to="/home" className="text-xl font-bold text-blue-600">SmartSpace</Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link to="/search" className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300">
                 Find Halls
               </Link>
-              <Link to="/owner" className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300">
-                For Owners
+              <Link to="/dashboard" className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300">
+                Dashboard
               </Link>
             </div>
           </div>

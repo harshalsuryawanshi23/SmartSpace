@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             String publicId = claims.getSubject();
+            Long userId = claims.get("userId", Long.class);
             @SuppressWarnings("unchecked")
             List<String> roles = claims.get("roles", List.class);
 
@@ -48,8 +49,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());
 
+            com.smartspace.security.auth.SmartSpacePrincipal principal = 
+                    new com.smartspace.security.auth.SmartSpacePrincipal(userId, publicId);
+
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    publicId, null, authorities
+                    principal, null, authorities
             );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

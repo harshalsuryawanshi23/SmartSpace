@@ -20,11 +20,12 @@ public final class SecurityUtils {
             throw new IllegalStateException("No authenticated user found in SecurityContext");
         }
         Object principal = auth.getPrincipal();
+        if (principal instanceof SmartSpacePrincipal) {
+            return ((SmartSpacePrincipal) principal).getId();
+        }
         if (principal instanceof Long) {
             return (Long) principal;
         }
-        // If the principal is a string publicId, we cannot resolve to Long here.
-        // Fallback: try parsing if it's a numeric string
         if (principal instanceof String) {
             try {
                 return Long.parseLong((String) principal);
@@ -35,14 +36,15 @@ public final class SecurityUtils {
         throw new IllegalStateException("Unsupported principal type: " + principal.getClass());
     }
 
-    /**
-     * Returns the current authenticated user's public ID (string).
-     */
     public static String getCurrentUserPublicId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null) {
             throw new IllegalStateException("No authenticated user found in SecurityContext");
         }
-        return auth.getPrincipal().toString();
+        Object principal = auth.getPrincipal();
+        if (principal instanceof SmartSpacePrincipal) {
+            return ((SmartSpacePrincipal) principal).getPublicId();
+        }
+        return principal.toString();
     }
 }

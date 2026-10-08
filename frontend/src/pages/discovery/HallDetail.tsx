@@ -57,18 +57,18 @@ export default function HallDetail() {
     if (id) fetchHall();
   }, [id]);
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (!hall) return <div className="p-8 text-center">Hall not found</div>;
+  if (loading) return <main className="p-8 text-center"><h1>Loading...</h1></main>;
+  if (!hall) return <main className="p-8 text-center"><h1>Hall not found</h1></main>;
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div className="mb-4">
-        <Link to="/search" className="text-teal-600 hover:text-teal-900">&larr; Back to Search</Link>
+        <Link to="/search" className="text-teal-700 hover:text-teal-900">&larr; Back to Search</Link>
       </div>
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
           <div>
-            <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
+            <h1 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h1>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
               {hall.locality}, {hall.city} &middot; ₹{hall.basePricePerHour} / hr &middot; {hall.capacityStanding} guests max
             </p>
@@ -137,6 +137,6 @@ export default function HallDetail() {
           Book Now
         </button>
       </div>
-    </div>
+    </main>
   );
 }

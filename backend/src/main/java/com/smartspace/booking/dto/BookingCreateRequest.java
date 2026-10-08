@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 public class BookingCreateRequest {
     private String idempotencyKey;
-    private Long hallId;
+    private String hallId;
     private BookingEventType eventType;
     private String eventTitle;
     private List<String> themeTags;

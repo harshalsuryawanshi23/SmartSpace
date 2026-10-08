@@ -42,7 +42,7 @@ public class BookingStateMachine {
         boolean valid = false;
         switch (target) {
             case PENDING_PAYMENT:
-                valid = (current == null);
+                valid = (current == null || current == BookingStatus.PENDING_PAYMENT);
                 break;
             case CONFIRMED:
                 valid = (current == BookingStatus.PENDING_PAYMENT);

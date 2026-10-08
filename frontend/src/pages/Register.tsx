@@ -37,11 +37,11 @@ export const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <main className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                     Create a new account
-                </h2>
+                </h1>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -54,8 +54,9 @@ export const Register = () => {
                         )}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
                                 <input
+                                    id="firstName"
                                     type="text"
                                     required
                                     className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
@@ -64,8 +65,9 @@ export const Register = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
                                 <input
+                                    id="lastName"
                                     type="text"
                                     required
                                     className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
@@ -76,8 +78,9 @@ export const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
                             <input
+                                id="email"
                                 type="email"
                                 className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
                                 value={email}
@@ -86,8 +89,9 @@ export const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
                             <input
+                                id="phone"
                                 type="text"
                                 className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
                                 value={phone}
@@ -96,8 +100,9 @@ export const Register = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Password</label>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
                             <input
+                                id="password"
                                 type="password"
                                 required
                                 className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
@@ -125,6 +130,6 @@ export const Register = () => {
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
     );
 };

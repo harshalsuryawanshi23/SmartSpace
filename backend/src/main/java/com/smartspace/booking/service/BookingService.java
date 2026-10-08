@@ -44,7 +44,7 @@ public class BookingService {
     private final Clock clock;
 
     public PriceBreakdown quote(BookingQuoteRequest req, Long userId) {
-        Hall hall = hallRepository.findById(req.getHallId())
+        Hall hall = hallRepository.findByPublicId(req.getHallId())
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Hall not found"));
         
         boolean isMember = societyMemberRepository.findById(new com.smartspace.listing.entity.SocietyMemberId(hall.getSocietyId(), userId))
@@ -79,7 +79,7 @@ public class BookingService {
         newKey.setLockedAt(Instant.now(clock));
         idempotencyKeyRepository.save(newKey);
 
-        Hall hall = hallRepository.findById(req.getHallId())
+        Hall hall = hallRepository.findByPublicId(req.getHallId())
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Hall not found"));
         User renter = userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "User not found"));
@@ -151,6 +151,11 @@ public class BookingService {
 
     public Booking getBooking(Long bookingId) {
         return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Booking not found"));
+    }
+
+    public Booking getBookingByPublicId(String publicId) {
+        return bookingRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new DomainException(com.smartspace.common.exception.ErrorCode.NOT_FOUND, "Booking not found"));
     }
 }

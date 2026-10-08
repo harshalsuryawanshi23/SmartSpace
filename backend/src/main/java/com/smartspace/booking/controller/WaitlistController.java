@@ -25,14 +25,14 @@ public class WaitlistController {
     private final UserRepository userRepository;
 
     @PostMapping
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<WaitlistEntry> joinWaitlist(
-            @PathVariable Long hallId,
+            @PathVariable String hallId,
             @RequestBody JoinWaitlistRequest request) {
         
         Long userId = SecurityUtils.getCurrentUserId();
 
-        Hall hall = hallRepository.findById(hallId).orElseThrow();
+        Hall hall = hallRepository.findByPublicId(hallId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
 
         WaitlistEntry entry = new WaitlistEntry();
@@ -40,6 +40,7 @@ public class WaitlistController {
         entry.setUser(user);
         entry.setStartTime(request.getStartAt());
         entry.setDurationMinutes(request.getDurationMinutes());
+        entry.setGuestCount(request.getGuestCount());
         entry.setStatus("WAITING");
 
         waitlistEntryRepository.save(entry);
@@ -50,9 +51,12 @@ public class WaitlistController {
 class JoinWaitlistRequest {
     private Instant startAt;
     private int durationMinutes;
+    private int guestCount;
 
     public Instant getStartAt() { return startAt; }
     public void setStartAt(Instant startAt) { this.startAt = startAt; }
     public int getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
+    public int getGuestCount() { return guestCount; }
+    public void setGuestCount(int guestCount) { this.guestCount = guestCount; }
 }

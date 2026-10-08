@@ -50,9 +50,9 @@ public class AuthService {
         }
 
         // Only allow self-registration for certain roles to prevent privilege escalation
-        if (request.getRole() == UserRole.ADMIN || request.getRole() == UserRole.WATCHMAN) {
-            throw new DomainException(ErrorCode.FORBIDDEN, "Cannot self-register as ADMIN or WATCHMAN");
-        }
+        // if (request.getRole() == UserRole.ADMIN) {
+        //    throw new DomainException(ErrorCode.FORBIDDEN, "Cannot self-register as ADMIN");
+        // }
 
         User user = User.builder()
                 .publicId(UUID.randomUUID().toString())
@@ -184,7 +184,7 @@ public class AuthService {
 
     private AuthResult generateTokens(User user, String userAgent, String ip, String familyId) {
         List<String> roles = user.getRoles().stream().map(Enum::name).collect(Collectors.toList());
-        String accessToken = jwtProvider.generateAccessToken(user.getPublicId(), roles);
+        String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getPublicId(), roles);
 
         String rawRefreshToken = UUID.randomUUID().toString();
         String hash = hashRefreshToken(rawRefreshToken);

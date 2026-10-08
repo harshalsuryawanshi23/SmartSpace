@@ -15,7 +15,7 @@ export const OwnerDashboard: React.FC = () => {
   const [newSociety, setNewSociety] = useState({ name: '', locality: '', city: '', state: '', pincode: '', docUrl: '' });
 
   const [showHallModal, setShowHallModal] = useState(false);
-  const [newHall, setNewHall] = useState({ societyId: '', name: '', description: '', maxCapacity: 100, category: 'BANQUET' });
+  const [newHall, setNewHall] = useState({ societyId: '', name: '', description: '', maxCapacity: 100, category: 'BANQUET', advanceDaysPublic: 30, advanceDaysMember: 60, memberDiscountPercent: 10 });
 
   useEffect(() => {
       fetchDashboardData();
@@ -147,7 +147,7 @@ export const OwnerDashboard: React.FC = () => {
               <div className="text-center py-12 text-gray-500">Loading analytics...</div>
           ) : (
               <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-center items-center">
                           <h3 className="text-sm font-medium text-gray-500 mb-1">Occupancy Rate</h3>
                           <p className="text-3xl font-bold text-gray-900">{analytics.occupancyPercentage?.toFixed(1) || '0'}%</p>
@@ -159,6 +159,10 @@ export const OwnerDashboard: React.FC = () => {
                       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-center items-center">
                           <h3 className="text-sm font-medium text-gray-500 mb-1">Cancellation Rate</h3>
                           <p className="text-3xl font-bold text-gray-900">{analytics.cancellationRate?.toFixed(1) || '0'}%</p>
+                      </div>
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-center items-center">
+                          <h3 className="text-sm font-medium text-gray-500 mb-1">Peak vs Declared</h3>
+                          <p className="text-3xl font-bold text-gray-900">{analytics.avgHeadcountDeclaredRatio?.toFixed(1) || '0'}%</p>
                       </div>
                   </div>
                   
@@ -373,6 +377,16 @@ export const OwnerDashboard: React.FC = () => {
                       <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Max Capacity</label>
                           <input type="number" required min="1" value={newHall.maxCapacity} onChange={e => setNewHall({...newHall, maxCapacity: parseInt(e.target.value)})} className="w-full border rounded p-2" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Member Advance Days</label>
+                              <input type="number" required min="0" value={newHall.advanceDaysMember} onChange={e => setNewHall({...newHall, advanceDaysMember: parseInt(e.target.value)})} className="w-full border rounded p-2" />
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Member Discount %</label>
+                              <input type="number" required min="0" max="100" value={newHall.memberDiscountPercent} onChange={e => setNewHall({...newHall, memberDiscountPercent: parseInt(e.target.value)})} className="w-full border rounded p-2" />
+                          </div>
                       </div>
                       <div className="flex justify-end space-x-3 mt-6">
                           <button type="button" onClick={() => setShowHallModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>

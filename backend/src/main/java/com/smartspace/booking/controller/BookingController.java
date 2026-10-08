@@ -23,15 +23,19 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final com.smartspace.booking.service.CancellationService cancellationService;
+    private final com.smartspace.booking.repository.BookingRepository bookingRepository;
+    private final com.smartspace.entry.service.QrTokenService qrTokenService;
+    private final com.smartspace.booking.service.BookingStateMachine bookingStateMachine;
+    
     @PostMapping("/quote")
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<PriceBreakdown> quote(@RequestBody BookingQuoteRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(bookingService.quote(request, userId));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<BookingResponse> createBooking(@RequestBody BookingCreateRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         Booking booking = bookingService.createBooking(request, userId);
@@ -39,7 +43,7 @@ public class BookingController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<List<BookingResponse>> getMyBookings() {
         Long userId = SecurityUtils.getCurrentUserId();
         List<BookingResponse> responses = bookingService.getMyBookings(userId).stream()
@@ -49,24 +53,42 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('RENTER')")
-    public ResponseEntity<BookingResponse> getBooking(@PathVariable Long id) {
+    @PreAuthorize("hasRole('RESIDENT')")
+    public ResponseEntity<BookingResponse> getBooking(@PathVariable String id) {
         Long userId = SecurityUtils.getCurrentUserId();
-        Booking booking = bookingService.getBooking(id);
+        Booking booking = bookingService.getBookingByPublicId(id);
         if (!booking.getRenter().getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(mapToResponse(booking));
     }
 
+    @PostMapping("/{id}/mock-pay")
+    @PreAuthorize("hasRole('RESIDENT')")
+    public ResponseEntity<?> mockPayBooking(@PathVariable String id) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        Booking booking = bookingService.getBookingByPublicId(id);
+        
+        if (!booking.getRenter().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        bookingStateMachine.transition(booking, com.smartspace.booking.entity.BookingStatus.CONFIRMED, com.smartspace.booking.entity.HistoryEventType.PAID, com.smartspace.booking.entity.ActorType.SYSTEM, null, "{\"reason\": \"Mock Payment captured\"}");
+        bookingRepository.save(booking);
+        
+        qrTokenService.issueHolderCredential(booking);
+        
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasRole('RESIDENT')")
     public ResponseEntity<?> cancelBooking(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestParam(defaultValue = "false") boolean preview,
             @RequestBody(required = false) String reason) {
         Long userId = SecurityUtils.getCurrentUserId();
-        Booking booking = bookingService.getBooking(id);
+        Booking booking = bookingService.getBookingByPublicId(id);
         
         if (!booking.getRenter().getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

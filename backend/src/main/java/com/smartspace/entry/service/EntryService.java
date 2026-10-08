@@ -11,6 +11,8 @@ import com.smartspace.entry.repository.EntryCredentialRepository;
 import com.smartspace.entry.repository.EntryLogRepository;
 import com.smartspace.entry.repository.HallLiveStatusRepository;
 import com.smartspace.notification.service.NotificationService;
+import com.smartspace.listing.repository.HallRepository;
+import com.smartspace.listing.entity.Hall;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.UUID;
 public class EntryService {
 
     private final QrTokenService qrTokenService;
+    private final QrKeyGeneratorService keyGeneratorService;
     private final OtpGateChallengeService otpGateChallengeService;
     private final BookingRepository bookingRepository;
     private final EntryCredentialRepository entryCredentialRepository;
@@ -36,8 +39,10 @@ public class EntryService {
     private final BookingStateMachine bookingStateMachine;
     private final com.smartspace.entry.repository.HandoverReportRepository handoverReportRepository;
     private final NotificationService notificationService;
+    private final HallRepository hallRepository;
 
     @Transactional
+
     public Map<String, Object> scan(String token, Long watchmanHallId, Long watchmanUserId, String deviceId) {
         Map<String, Object> response = new HashMap<>();
         
@@ -444,4 +449,78 @@ public class EntryService {
                 .conflicts(conflictDetails)
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> generateManifest(java.util.List<Long> hallIds, int hours) {
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        LocalDateTime expiresAt = now.plusHours(hours);
+
+        // 1. Keys
+        byte[] rawKey = keyGeneratorService.getPublicKey().getEncoded();
+        byte[] raw32 = new byte[32];
+        System.arraycopy(rawKey, rawKey.length - 32, raw32, 0, 32);
+        String x = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(raw32);
+        Map<String, String> keyInfo = Map.of(
+                "kid", keyGeneratorService.getKeyId(),
+                "alg", "Ed25519",
+                "x", x
+        );
+
+        // 2. Halls
+        java.util.List<Hall> halls = hallRepository.findAllById(hallIds);
+        java.util.List<Map<String, Object>> hallList = new java.util.ArrayList<>();
+        for (Hall h : halls) {
+            hallList.add(Map.of(
+                    "hallId", h.getPublicId(),
+                    "name", h.getName(),
+                    "capacityStanding", h.getCapacityStanding()
+            ));
+        }
+
+        // 3. Credentials & revokedJtis
+        java.util.List<EntryCredential> allCreds = entryCredentialRepository.findAll();
+        java.util.List<Map<String, Object>> credList = new java.util.ArrayList<>();
+        java.util.List<String> revokedJtis = new java.util.ArrayList<>();
+
+        for (EntryCredential c : allCreds) {
+            if (!hallIds.contains(c.getBooking().getHall().getId())) continue;
+            
+            if (c.getRevokedAt() != null) {
+                revokedJtis.add(c.getJti());
+                continue;
+            }
+
+            if (c.getValidUntil().isAfter(now) && c.getValidFrom().isBefore(expiresAt)) {
+                String assurance = "STANDARD";
+                // Assuming HIGH if phone is verified, simplified for now
+                if (c.getBooking().getRenter().getPhoneVerifiedAt() != null) {
+                    assurance = "HIGH";
+                }
+                
+                Map<String, Object> credMap = new HashMap<>();
+                credMap.put("jti", c.getJti());
+                credMap.put("kind", c.getKind());
+                credMap.put("bookingId", c.getBooking().getPublicId());
+                credMap.put("bookingRef", c.getBooking().getBookingRef());
+                credMap.put("hallId", c.getBooking().getHall().getPublicId());
+                credMap.put("validFrom", c.getValidFrom().toString() + "Z");
+                credMap.put("validUntil", c.getValidUntil().toString() + "Z");
+                credMap.put("displayName", c.getBooking().getRenter().getFullName());
+                credMap.put("guestsExpected", c.getBooking().getGuestCount());
+                credMap.put("assurance", assurance);
+                credMap.put("status", c.getBooking().getStatus().name());
+                credList.add(credMap);
+            }
+        }
+
+        return Map.of(
+                "generatedAt", now.toString() + "Z",
+                "expiresAt", expiresAt.toString() + "Z",
+                "keys", java.util.List.of(keyInfo),
+                "halls", hallList,
+                "credentials", credList,
+                "revokedJtis", revokedJtis
+        );
+    }
 }
+

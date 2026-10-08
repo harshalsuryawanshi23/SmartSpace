@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AuthGuard } from './components/AuthGuard';
+import { Navbar } from './components/common/Navbar';
 
 // Pages
 import { Login } from './pages/Login';
@@ -34,41 +35,47 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/halls/:id" element={<HallDetail />} />
-          {/* Protected routes */}
-          <Route element={<AuthGuard />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/force-change-password" element={<ForceChangePassword />} />
-            
-            {/* KYC routes */}
-            <Route path="/kyc" element={<KycIntro />} />
-            <Route path="/kyc/mock" element={<KycMockProvider />} />
-            <Route path="/kyc/status" element={<KycStatus />} />
+        <div className="min-h-screen flex flex-col bg-gray-50">
+          <Navbar />
+          <div className="flex-grow">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/halls/:id" element={<HallDetail />} />
+              {/* Protected routes */}
+              <Route element={<AuthGuard />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/force-change-password" element={<ForceChangePassword />} />
+                
+                {/* KYC routes */}
+                <Route path="/kyc" element={<KycIntro />} />
+                <Route path="/kyc/mock" element={<KycMockProvider />} />
+                <Route path="/kyc/status" element={<KycStatus />} />
 
-            {/* Watchman routes */}
-            <Route path="/watchman" element={<WatchmanLayout />}>
-              <Route index element={<WatchHome />} />
-              <Route path="scan" element={<Scanner />} />
-              <Route path="verdict" element={<Verdict />} />
-              <Route path="checkout/:id" element={<CheckoutForm />} />
-            </Route>
+                {/* Watchman routes */}
+                <Route path="/watchman" element={<WatchmanLayout />}>
+                  <Route index element={<WatchHome />} />
+                  <Route path="scan" element={<Scanner />} />
+                  <Route path="verdict" element={<Verdict />} />
+                  <Route path="checkout/:id" element={<CheckoutForm />} />
+                </Route>
 
-            {/* Decorator routes */}
-            <Route path="/decorator/dashboard" element={<DecoratorDashboard />} />
-          </Route>
+                {/* Decorator routes */}
+                <Route path="/decorator/dashboard" element={<DecoratorDashboard />} />
+              </Route>
 
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </div>
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );

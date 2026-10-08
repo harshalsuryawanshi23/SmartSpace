@@ -49,21 +49,21 @@ export default function Search() {
   }, [searchParams]);
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 flex">
+    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 flex">
       <div className="w-1/4 pr-4">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Filters</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Price</label>
-            <input type="range" className="w-full mt-1" />
+            <label htmlFor="priceRange" className="block text-sm font-medium text-gray-700">Price</label>
+            <input id="priceRange" type="range" className="w-full mt-1" aria-label="Price" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Amenities</label>
             <div className="mt-2 space-y-2">
               {['AC', 'Parking', 'Kitchen'].map((am) => (
                 <div key={am} className="flex items-center">
-                  <input type="checkbox" className="h-4 w-4 text-teal-600 border-gray-300 rounded" />
-                  <label className="ml-2 block text-sm text-gray-900">{am}</label>
+                  <input id={`amenity-${am}`} type="checkbox" className="h-4 w-4 text-teal-600 border-gray-300 rounded" />
+                  <label htmlFor={`amenity-${am}`} className="ml-2 block text-sm text-gray-900">{am}</label>
                 </div>
               ))}
             </div>
@@ -100,7 +100,7 @@ export default function Search() {
           </div>
         )}
 
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Results ({halls.length})</h2>
+        <h1 className="text-lg font-medium text-gray-900 mb-4">Results ({halls.length})</h1>
         {loading ? (
           <p>Loading...</p>
         ) : (
@@ -109,7 +109,7 @@ export default function Search() {
               <div key={hall.id} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
                 <div className="px-4 py-5 sm:p-6">
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h3>
+                    <h2 className="text-lg leading-6 font-medium text-gray-900">{hall.name}</h2>
                     <TrustBadge score={mockTrustScore.score} badge={mockTrustScore.badge} componentsJson={mockTrustScore.componentsJson} showLabel={false} />
                   </div>
                   <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -118,7 +118,7 @@ export default function Search() {
                     <p>Up to {hall.capacityStanding} guests</p>
                   </div>
                   <div className="mt-3 text-sm">
-                    <Link to={`/halls/${hall.id}`} className="font-medium text-teal-600 hover:text-teal-500">
+                    <Link to={`/halls/${hall.id}`} className="font-medium text-teal-700 hover:text-teal-900">
                       View Details &rarr;
                     </Link>
                   </div>
@@ -128,6 +128,6 @@ export default function Search() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

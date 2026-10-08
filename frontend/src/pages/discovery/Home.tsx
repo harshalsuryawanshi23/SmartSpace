@@ -13,7 +13,7 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="text-center">
         <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
           Discover the Perfect Hall
@@ -28,6 +28,7 @@ export default function Home() {
           <input
             type="text"
             placeholder="Locality (e.g. Pune)"
+            aria-label="Locality"
             className="w-full sm:max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
             value={locality}
             onChange={(e) => setLocality(e.target.value)}
@@ -35,18 +36,19 @@ export default function Home() {
           <input
             type="number"
             placeholder="Guests"
+            aria-label="Guests"
             className="w-full sm:max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
             value={guests}
             onChange={(e) => setGuests(e.target.value)}
           />
           <button
             type="submit"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-700 hover:bg-teal-800"
           >
             Search
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

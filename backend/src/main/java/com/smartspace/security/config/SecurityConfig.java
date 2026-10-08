@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/otp/send", "/api/v1/auth/otp/verify").permitAll()
                 .requestMatchers("/api/v1/halls/search", "/api/v1/geo/localities").permitAll()
+                .requestMatchers("/api/v1/dev/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
@@ -14,7 +13,6 @@ import java.time.Instant;
 @Table(name = "idempotency_keys")
 @Getter
 @Setter
-@EntityListeners(AuditingEntityListener.class)
 public class IdempotencyKey {
 
     @Id
@@ -40,7 +38,7 @@ public class IdempotencyKey {
     @Column(name = "completed_at")
     private Instant completedAt;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 }

@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class BookingQuoteRequest {
-    private Long hallId;
+    private String hallId;
     private Instant startAt;
     private Instant endAt;
     private Integer guestCount;

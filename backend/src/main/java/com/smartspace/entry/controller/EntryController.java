@@ -61,10 +61,10 @@ public class EntryController {
     // Moved from /bookings/{id}/qr to /entry/bookings/{id}/qr for path consistency
     // Although standard would be to keep it under bookings. Let's create an alias here just in case.
     @GetMapping("/bookings/{id}/qr")
-    @PreAuthorize("hasRole('RENTER')")
-    public ResponseEntity<Map<String, String>> getBookingQr(@PathVariable Long id) {
+    @PreAuthorize("hasRole('RESIDENT')")
+    public ResponseEntity<Map<String, String>> getBookingQr(@PathVariable String id) {
         Long userId = SecurityUtils.getCurrentUserId();
-        Booking booking = bookingService.getBooking(id);
+        Booking booking = bookingService.getBookingByPublicId(id);
         
         if (!booking.getRenter().getId().equals(userId)) {
             return ResponseEntity.status(403).build();
@@ -72,7 +72,7 @@ public class EntryController {
         
         List<EntryCredential> creds = entryCredentialRepository.findAll();
         EntryCredential credential = creds.stream()
-                .filter(c -> c.getBooking().getId().equals(id) && c.getKind().equals("HOLDER") && c.getRevokedAt() == null)
+                .filter(c -> c.getBooking().getId().equals(booking.getId()) && c.getKind().equals("HOLDER") && c.getRevokedAt() == null)
                 .findFirst()
                 .orElse(null);
                 
@@ -206,5 +206,22 @@ public class EntryController {
         // TODO: Map watchmanUserId to their assigned hall dynamically
         // For MVP, returning 1L assuming Watchman ID 2 is assigned to Hall 1
         return 1L;
+    }
+
+    @GetMapping("/manifest")
+    @PreAuthorize("hasAnyRole('WATCHMAN', 'HALL_OWNER')")
+    public ResponseEntity<Map<String, Object>> getManifest(@RequestParam(required = false) List<Long> hallIds, @RequestParam(defaultValue = "24") int hours) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        List<Long> targetHallIds = hallIds != null && !hallIds.isEmpty() ? hallIds : List.of(getWatchmanHallId(userId));
+        Map<String, Object> manifest = entryService.generateManifest(targetHallIds, hours);
+        return ResponseEntity.ok(manifest);
+    }
+
+    @PostMapping("/sync")
+    @PreAuthorize("hasRole('WATCHMAN')")
+    public ResponseEntity<com.smartspace.entry.dto.OfflineSyncResponse> syncOfflineEvents(@RequestBody com.smartspace.entry.dto.OfflineSyncRequest req) {
+        Long watchmanUserId = SecurityUtils.getCurrentUserId();
+        com.smartspace.entry.dto.OfflineSyncResponse response = entryService.processOfflineSync(req, watchmanUserId);
+        return ResponseEntity.ok(response);
     }
 }
