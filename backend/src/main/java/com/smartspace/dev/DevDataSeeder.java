@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.CommandLineRunner;
 
 import com.smartspace.user.entity.User;
 import com.smartspace.user.entity.UserRole;
@@ -26,7 +27,7 @@ import java.util.Set;
 @Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
-public class DevDataSeeder {
+public class DevDataSeeder implements CommandLineRunner {
 
     private final Flyway flyway;
     private final UserRepository userRepository;
@@ -34,6 +35,16 @@ public class DevDataSeeder {
     private final HallRepository hallRepository;
     private final PasswordEncoder passwordEncoder;
     private final MutableClock clock;
+
+    @Override
+    public void run(String... args) {
+        if (userRepository.count() == 0) {
+            log.info("Database is empty. Seeding data automatically...");
+            resetAndSeed();
+        } else {
+            log.info("Database already contains data. Skipping automatic seed.");
+        }
+    }
 
     @Transactional
     public void resetAndSeed() {
@@ -50,29 +61,30 @@ public class DevDataSeeder {
     }
 
     private void seedUsers() {
+        String password = passwordEncoder.encode("Demo@12345");
+
+        createUser("Admin", "admin@smartspace.test", "9000000001", password, UserRole.ADMIN, UserStatus.ACTIVE);
+        createUser("Hall Owner", "owner.meadows@smartspace.test", "9000000002", password, UserRole.HALL_OWNER, UserStatus.ACTIVE);
+        createUser("Watchman", "watch.meadows@smartspace.test", "9000000003", password, UserRole.WATCHMAN, UserStatus.ACTIVE);
+        createUser("Resident Priya", "priya@smartspace.test", "9000000004", password, UserRole.RESIDENT, UserStatus.ACTIVE);
+        createUser("Resident Rahul", "rahul@smartspace.test", "9000000005", password, UserRole.RESIDENT, UserStatus.PENDING);
+        createUser("Rang Decor", "rang.decor@smartspace.test", "9000000006", password, UserRole.DECORATOR, UserStatus.ACTIVE);
+    }
+
+    private User createUser(String name, String email, String phone, String passwordHash, UserRole role, UserStatus status) {
         User user = new User();
         user.setPublicId(UUID.randomUUID().toString());
-        user.setEmail("user@example.com");
-        user.setPhone("9876543210");
-        user.setPasswordHash(passwordEncoder.encode("password123"));
-        user.setRoles(Set.of(UserRole.RESIDENT));
-        user.setFullName("Demo User");
-        user.setStatus(UserStatus.ACTIVE);
-        userRepository.save(user);
-
-        User owner = new User();
-        owner.setPublicId(UUID.randomUUID().toString());
-        owner.setEmail("owner@example.com");
-        owner.setPhone("9876543211");
-        owner.setPasswordHash(passwordEncoder.encode("password123"));
-        owner.setRoles(Set.of(UserRole.HALL_OWNER));
-        owner.setFullName("Demo Owner");
-        owner.setStatus(UserStatus.ACTIVE);
-        userRepository.save(owner);
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setPasswordHash(passwordHash);
+        user.setRoles(Set.of(role));
+        user.setFullName(name);
+        user.setStatus(status);
+        return userRepository.save(user);
     }
 
     private void seedSocietiesAndHalls() {
-        User owner = userRepository.findByEmail("owner@example.com").orElseThrow();
+        User owner = userRepository.findByEmail("owner.meadows@smartspace.test").orElseThrow();
 
         Society society = new Society();
         society.setManagerUserId(owner.getId());
@@ -108,28 +120,5 @@ public class DevDataSeeder {
         hall.setLat(new BigDecimal("19.1197"));
         hall.setLng(new BigDecimal("72.8464"));
         hallRepository.save(hall);
-        
-        Hall hall2 = new Hall();
-        hall2.setSocietyId(society.getId());
-        hall2.setOwnerUserId(owner.getId());
-        hall2.setName("Silver Mini Hall");
-        hall2.setDescription("A compact hall for birthdays and small gatherings.");
-        hall2.setCapacitySeated(50);
-        hall2.setCapacityStanding(100);
-        hall2.setAreaSqft(1500);
-        hall2.setHasAc(true);
-        hall2.setHasParking(false);
-        hall2.setHasKitchen(false);
-        hall2.setHasStage(false);
-        hall2.setHasPowerBackup(true);
-        hall2.setHasWashroom(true);
-        hall2.setBasePricePerHour(new BigDecimal("1500"));
-        hall2.setMinSlotMinutes(180);
-        hall2.setAddressLine("123 Main Street");
-        hall2.setLocality("Andheri West");
-        hall2.setCity("Mumbai");
-        hall2.setLat(new BigDecimal("19.1197"));
-        hall2.setLng(new BigDecimal("72.8464"));
-        hallRepository.save(hall2);
     }
 }

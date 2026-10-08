@@ -30,7 +30,7 @@ public class KycController {
 
     @PostMapping("/consent")
     @PreAuthorize("hasRole('RESIDENT')")
-    public ResponseEntity<Void> recordConsent(@Valid @RequestBody ConsentRequest consentRequest, HttpServletRequest request, @AuthenticationPrincipal String publicId) {
+    public ResponseEntity<Void> recordConsent(@Valid @RequestBody ConsentRequest consentRequest, HttpServletRequest request, @AuthenticationPrincipal(expression = "publicId") String publicId) {
         String ipAddress = request.getRemoteAddr();
         kycService.recordConsent(getUserId(publicId), consentRequest, ipAddress);
         return ResponseEntity.ok().build();
@@ -38,26 +38,26 @@ public class KycController {
 
     @PostMapping("/start")
     @PreAuthorize("hasRole('RESIDENT')")
-    public ResponseEntity<KycStartResponse> startKyc(@AuthenticationPrincipal String publicId) {
+    public ResponseEntity<KycStartResponse> startKyc(@AuthenticationPrincipal(expression = "publicId") String publicId) {
         return ResponseEntity.ok(kycService.startKyc(getUserId(publicId)));
     }
 
     @PostMapping("/complete")
     @PreAuthorize("hasRole('RESIDENT')")
-    public ResponseEntity<Void> completeKyc(@Valid @RequestBody KycCompleteRequest completeRequest, @AuthenticationPrincipal String publicId) {
+    public ResponseEntity<Void> completeKyc(@Valid @RequestBody KycCompleteRequest completeRequest, @AuthenticationPrincipal(expression = "publicId") String publicId) {
         kycService.completeKyc(getUserId(publicId), completeRequest.sessionId());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/status")
     @PreAuthorize("hasRole('RESIDENT')")
-    public ResponseEntity<KycStatusResponse> getKycStatus(@AuthenticationPrincipal String publicId) {
+    public ResponseEntity<KycStatusResponse> getKycStatus(@AuthenticationPrincipal(expression = "publicId") String publicId) {
         return ResponseEntity.ok(kycService.getKycStatus(getUserId(publicId)));
     }
 
     @PostMapping("/revoke")
     @PreAuthorize("hasRole('RESIDENT')")
-    public ResponseEntity<Void> revokeKyc(@AuthenticationPrincipal String publicId) {
+    public ResponseEntity<Void> revokeKyc(@AuthenticationPrincipal(expression = "publicId") String publicId) {
         kycService.revokeKyc(getUserId(publicId));
         return ResponseEntity.ok().build();
     }
